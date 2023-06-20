@@ -29,13 +29,13 @@ export const SpaceGroup = forwardRef<
       group.visible = false;
       return;
     }
-    const gripSpace = frame.getPose(space, referenceSpace);
-    if (gripSpace == null) {
+    const pose = frame.getPose(space, referenceSpace);
+    if (pose == null) {
       group.visible = false;
       return;
     }
     group.visible = true;
-    group.matrix.fromArray(gripSpace.transform.matrix);
+    group.matrix.fromArray(pose.transform.matrix);
     if (onFrame != null) {
       group.updateMatrixWorld();
       onFrame(rootState, delta, frame, group);

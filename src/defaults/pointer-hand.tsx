@@ -30,7 +30,7 @@ export function PointerHand({
   return (
     <>
       <DynamicHandModel hand={hand} handedness={inputSource.handedness}>
-        {children != null ?? <HandBoneGroup joint="wrist">{children}</HandBoneGroup>}
+        {children != null && <HandBoneGroup joint="wrist">{children}</HandBoneGroup>}
       </DynamicHandModel>
       <SpaceGroup space={inputSource.targetRaySpace}>
         <group rotation-y={Math.PI}>

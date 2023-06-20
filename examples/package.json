@@ -7,9 +7,9 @@
   },
   "type": "module",
   "dependencies": {
-    "@coconut-xr/natuerlich": "file:..",
     "@coconut-xr/koestlich": "^0.0.15",
-    "@coconut-xr/kruemel": "^0.0.4",
+    "@coconut-xr/kruemel": "^0.0.6",
+    "@coconut-xr/natuerlich": "file:..",
     "@react-three/drei": "^9.56.18",
     "vite-plugin-mkcert": "^1.13.0",
     "zustand": "^4.3.2"

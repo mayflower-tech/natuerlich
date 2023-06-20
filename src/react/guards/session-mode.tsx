@@ -1,37 +1,44 @@
-import { useEffect, RefObject } from "react";
-import { Group } from "three";
+import { ReactNode } from "react";
 import { ExtendedXRSessionMode } from "../state.js";
-import { IncludeGuard, useXR, VisibleGuard } from "../index.js";
+import { useXR } from "../index.js";
+import React from "react";
 
 export function useIsInSessionMode(
-  ref: RefObject<Group>,
-  set: (show: boolean) => void,
-  {
-    allow,
-    deny,
-  }: {
-    allow?: ExtendedXRSessionMode | ReadonlyArray<ExtendedXRSessionMode>;
-    deny?: ExtendedXRSessionMode | ReadonlyArray<ExtendedXRSessionMode>;
-  },
+  allow?: ExtendedXRSessionMode | ReadonlyArray<ExtendedXRSessionMode>,
+  deny?: ExtendedXRSessionMode | ReadonlyArray<ExtendedXRSessionMode>,
 ) {
-  useEffect(() => {
-    const update = (mode: ExtendedXRSessionMode) => {
-      if (ref.current == null) {
-        return;
-      }
-      if (deny != null) {
-        set(Array.isArray(deny) ? !deny.includes(mode) : deny != mode);
-        return;
-      }
-      if (allow != null) {
-        set(Array.isArray(allow) ? allow.includes(mode) : allow === mode);
-        return;
-      }
-    };
-    update(useXR.getState().mode);
-    return useXR.subscribe((state) => update(state.mode));
-  }, [allow, deny]);
+  const mode = useXR((state) => state.mode);
+  if (deny != null) {
+    return Array.isArray(deny) ? !deny.includes(mode) : deny != mode;
+  }
+  if (allow != null) {
+    return Array.isArray(allow) ? allow.includes(mode) : allow === mode;
+  }
+  return true;
 }
 
-export const VisibleWhenInSessionMode = VisibleGuard(useIsInSessionMode);
-export const IncludeWhenInSessionMode = IncludeGuard(useIsInSessionMode);
+export function VisibleWhenInSessionMode({
+  children,
+  allow,
+  deny,
+}: {
+  children?: ReactNode;
+  allow?: ExtendedXRSessionMode | ReadonlyArray<ExtendedXRSessionMode>;
+  deny?: ExtendedXRSessionMode | ReadonlyArray<ExtendedXRSessionMode>;
+}) {
+  const visible = useIsInSessionMode(allow, deny);
+  return <group visible={visible}>{children}</group>;
+}
+
+export function IncludeWhenInSessionMode({
+  children,
+  allow,
+  deny,
+}: {
+  children?: ReactNode;
+  allow?: ExtendedXRSessionMode | ReadonlyArray<ExtendedXRSessionMode>;
+  deny?: ExtendedXRSessionMode | ReadonlyArray<ExtendedXRSessionMode>;
+}) {
+  const visible = useIsInSessionMode(allow, deny);
+  return visible ? <>{children}</> : null;
+}

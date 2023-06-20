@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unknown-property */
-import { Canvas, GroupProps } from "@react-three/fiber";
+import { Canvas, GroupProps, useLoader, useStore } from "@react-three/fiber";
 import { Suspense, useCallback, useRef, useState } from "react";
 import {
   SpaceGroup,
@@ -12,19 +12,21 @@ import {
   DynamicHandModel,
   HandBoneGroup,
   useNativeFramebufferScaling,
-  NonImmersiveCamera,
-  IncludeWhenInSessionMode,
-  ImmersiveSessionOrigin,
   useHeighestAvailableFrameRate,
+  CylinderLayer,
+  QuadLayer,
+  ImmersiveSessionOrigin,
+  NonImmersiveCamera,
+  getInputSourceId,
 } from "@coconut-xr/natuerlich/react";
-import { BoxGeometry } from "three";
+import { BoxGeometry, PlaneGeometry, TextureLoader, Vector3 } from "three";
 import {
   InputDeviceFunctions,
   XSphereCollider,
   XStraightPointer,
   XWebPointers,
 } from "@coconut-xr/xinteraction/react";
-import { XIntersection } from "@coconut-xr/xinteraction";
+import { XIntersection, getDistanceSquaredInNDC } from "@coconut-xr/xinteraction";
 import { Container, RootContainer, Text, isIntersectionNotClipped } from "@coconut-xr/koestlich";
 import {
   Select,
@@ -57,8 +59,9 @@ import {
   Plus,
   Trash,
 } from "@coconut-xr/kruemel/icons/outline";
-import { Box, Grid } from "@react-three/drei";
 import { AnchorObject } from "./anchor-object.js";
+import { TeleportController, TeleportHand, TeleportTarget } from "../dist/defaults/teleport.js";
+import { Plane } from "@react-three/drei";
 
 const tableData = [
   ["Entry Name", "Entry Number", "Entry Description"],
@@ -68,11 +71,12 @@ const tableData = [
 ];
 
 const sessionOptions: XRSessionInit = {
-  requiredFeatures: ["local-floor", "hand-tracking", "anchors"],
+  requiredFeatures: ["local-floor", "hand-tracking", "anchors", "layers"],
 };
 
 export default function Index() {
   useSessionGrant();
+  const [position, setPosition] = useState(new Vector3());
   const enterAR = useEnterXR("immersive-ar", sessionOptions);
   const enterVR = useEnterXR("immersive-vr", sessionOptions);
   const frameBufferScaling = useNativeFramebufferScaling();
@@ -93,34 +97,71 @@ export default function Index() {
         <ambientLight intensity={1} />
         <XR frameBufferScaling={frameBufferScaling} frameRate={frameRate} />
         <XWebPointers filterIntersections={(is) => is.filter(isIntersectionNotClipped)} />
-        <InputSources />
+        <ImmersiveSessionOrigin position={position}>
+          <InputSources onTeleport={setPosition} />
+        </ImmersiveSessionOrigin>
+        <NonImmersiveCamera />
         <AnchorObject />
+        <NormalTexture />
+        <TeleportTarget>
+          <Plane scale={100} rotation={[-Math.PI / 2, 0, 0]} />
+        </TeleportTarget>
+        <Suspense>
+          <QuadLayerTexture />
+        </Suspense>
+        <CylinderLayerTexture />
         {/*<DoubleGrabCube />*/}
       </Canvas>
     </>
   );
 }
 
-function InputSources() {
-  const inputSources = useInputSources();
+const planeGeometry = new PlaneGeometry();
+
+function NormalTexture() {
+  const texture = useLoader(TextureLoader, "test.png");
   return (
-    <>
-      {inputSources.map((inputSource) => (
-        <XRInputSource inputSource={inputSource} key={inputSource.handedness} />
-      ))}
-    </>
+    <mesh position={[1, 1, 0]} geometry={planeGeometry}>
+      <meshBasicMaterial map={texture} />
+    </mesh>
   );
 }
 
-function XRInputSource({ inputSource }: { inputSource: XRInputSource }) {
-  if (inputSource == null || inputSource.handedness === "none") {
-    return null;
-  }
+function QuadLayerTexture() {
+  const texture = useLoader(TextureLoader, "test.png");
+  return <QuadLayer position={[0, 1, 0]} texture={texture} />;
+}
 
-  return inputSource.hand != null ? (
-    <Hand inputSource={inputSource} hand={inputSource.hand} />
-  ) : (
-    <Controller inputSource={inputSource} />
+function CylinderLayerTexture() {
+  const texture = useLoader(TextureLoader, "test.png");
+  return <CylinderLayer index={-2} position={[-1, 0, 1.5]} texture={texture} />;
+}
+
+function InputSources({ onTeleport }: { onTeleport: (point: Vector3) => void }) {
+  const inputSources = useInputSources();
+  return (
+    <>
+      {inputSources.map((inputSource) =>
+        inputSource == null || inputSource.handedness === "none" ? null : inputSource.hand !=
+          null ? (
+          <TeleportHand
+            key={getInputSourceId(inputSource)}
+            hand={inputSource.hand}
+            onTeleport={onTeleport}
+            inputSource={inputSource}
+            id={inputSource.handedness === "left" ? -5 : -6}
+          />
+        ) : (
+          //<Hand inputSource={inputSource} hand={inputSource.hand} />
+          <TeleportController
+            onTeleport={onTeleport}
+            id={inputSource.handedness === "left" ? -5 : -6}
+            key={getInputSourceId(inputSource)}
+            inputSource={inputSource}
+          />
+        ),
+      )}
+    </>
   );
 }
 
@@ -134,39 +175,45 @@ function Hand({ hand, inputSource }: { hand: XRHand; inputSource: XRInputSource 
   useInputSourceEvent("selectstart", inputSource, (e) => colliderRef.current?.press(0, e), []);
   useInputSourceEvent("selectend", inputSource, (e) => colliderRef.current?.release(0, e), []);
 
+  const store = useStore();
+
   return (
     <>
       <DynamicHandModel hand={hand} handedness={inputSource.handedness}>
         {inputSource.handedness === "left" ? (
           <HandBoneGroup joint={"wrist"}>
-            <Koestlich
-              position-x={-0.1}
-              position-y={-0.05}
-              position-z={-0.2}
-              rotation-x={-Math.PI / 2}
+            {/*<Koestlich
+              position-x={0.1}
+              position-y={0}
+              position-z={0.1}
+              rotation-z={(0.8 * Math.PI) / 2}
+              rotation-x={(1.1 * -Math.PI) / 2}
               rotation-y={0.9 * Math.PI}
               scale={0.1}
-            />
+        />*/}
           </HandBoneGroup>
         ) : (
           <>
-            {/*<HandBoneGroup joint={"index-finger-tip"}>
+            <HandBoneGroup joint={"index-finger-tip"}>
               <XSphereCollider
                 radius={0.03}
-                distanceElement={{ id: 0, downRadius: 0.02 }}
+                distanceElement={{ id: 0, downRadius: 0.01 }}
                 id={inputSource.handedness === "left" ? -5 : -6}
+                isDrag={(i1, i2) =>
+                  getDistanceSquaredInNDC(store.getState().camera, i1.point, i2.point) > 0.000008
+                }
                 filterIntersections={(is) => is.filter(isIntersectionNotClipped)}
               />
-        </HandBoneGroup>*/}
+            </HandBoneGroup>
 
-            <HandBoneGroup rotationJoint="wrist" joint={["thumb-tip", "index-finger-tip"]}>
+            {/* <HandBoneGroup rotationJoint="wrist" joint={["thumb-tip", "index-finger-tip"]}>
               <XSphereCollider
                 ref={colliderRef}
                 radius={0.01}
                 id={inputSource.handedness === "left" ? -3 : -4}
                 filterIntersections={(is) => is.filter(isIntersectionNotClipped)}
               />
-            </HandBoneGroup>
+            </HandBoneGroup>*/}
           </>
         )}
       </DynamicHandModel>
@@ -330,7 +377,7 @@ function Koestlich(props: GroupProps) {
         <Text fontSize={0.2} marginTop={0.2}>
           Radio
         </Text>
-        <Container alignItems="center" flexDirection="column">
+        <Container gapRow={0.1} alignItems="center" flexDirection="column">
           {new Array(3).fill(null).map((_, i) => (
             <Container
               key={i}

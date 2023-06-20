@@ -18,7 +18,7 @@ export function GrabController({
   inputSource: XRInputSource;
   children?: ReactNode;
   id: number;
-  filterIntersections?: (intersections: XIntersection[]) => XIntersection[];
+  filterIntersections?: (intersections: Array<XIntersection>) => Array<XIntersection>;
 }) {
   const colliderRef = useRef<InputDeviceFunctions>(null);
   const intersectionLength = useRef(0);
@@ -27,7 +27,7 @@ export function GrabController({
   useInputSourceEvent("squeezeend", inputSource, (e) => colliderRef.current?.release(0, e), []);
 
   const onIntersections = useCallback(
-    (intersections: Array<XIntersection>) => {
+    (intersections: ReadonlyArray<XIntersection>) => {
       const prevIntersected = intersectionLength.current > 0;
       const currentIntersected = intersections.length > 0;
       intersectionLength.current = intersections.length;

@@ -28,7 +28,7 @@ export function PointerController({
   useInputSourceEvent("selectend", inputSource, (e) => pointerRef.current?.release(0, e), []);
 
   const onIntersections = useCallback(
-    (intersections: Array<XIntersection>) => {
+    (intersections: ReadonlyArray<XIntersection>) => {
       const prevIntersected = refPrevIntersected.current;
       const currentIntersected = intersections.length > 0;
       refPrevIntersected.current = currentIntersected;

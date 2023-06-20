@@ -9,7 +9,7 @@ import {
   isMotionHand,
   MotionHand,
 } from "../motion-hand.js";
-import { Group } from "three";
+import { Group, Object3D } from "three";
 
 export function HandBoneGroup({
   joint,
@@ -30,8 +30,8 @@ export function HandBoneGroup({
       throw new Error(`HandBoneGroup can only be placed directly under DynamicHandModel`);
     }
     const bone = Array.isArray(joint)
-      ? joint.map(getBone.bind(null, motionHand))
-      : getBone(motionHand, joint);
+      ? joint.map(getBoneObject.bind(null, motionHand))
+      : getBoneObject(motionHand, joint);
     if (Array.isArray(bone)) {
       ref.current.position.set(0, 0, 0);
       for (const object of bone) {
@@ -54,7 +54,7 @@ export function HandBoneGroup({
   return <group ref={ref}>{children}</group>;
 }
 
-function getBone(motionHand: MotionHand, joint: XRHandJoint) {
+export function getBoneObject(motionHand: MotionHand, joint: XRHandJoint) {
   const bone = motionHand.boneMap.get(joint);
   if (bone == null) {
     throw new Error(`unknown joint "${joint}" in ${motionHand.boneMap}`);

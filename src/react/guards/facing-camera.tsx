@@ -1,7 +1,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { RefObject } from "react";
+import { ReactNode, RefObject, useRef, useState } from "react";
 import { Group, Quaternion, Vector3 } from "three";
-import { IncludeGuard, VisibleGuard } from "./index.js";
+import React from "react";
 
 const vectorHelper = new Vector3();
 const directionHelper = new Vector3();
@@ -11,14 +11,9 @@ const guardQuaternion = new Quaternion();
 export function useIsFacingCamera(
   ref: RefObject<Group>,
   set: (show: boolean) => void,
-  {
-    angle = Math.PI / 2,
-    direction,
-  }: {
-    angle?: number;
-    direction: Vector3;
-  },
-) {
+  direction: Vector3,
+  angle: number,
+): void {
   const camera = useThree((state) => state.camera);
   useFrame(() => {
     if (ref.current == null) {
@@ -38,5 +33,41 @@ export function useIsFacingCamera(
   });
 }
 
-export const VisibleWhenFacingCamera = VisibleGuard(useIsFacingCamera);
-export const IncludeWhenFacingCamera = IncludeGuard(useIsFacingCamera);
+export function VisibleWhenFacingCamera({
+  children,
+  direction,
+  angle = Math.PI / 2,
+}: {
+  children?: ReactNode;
+  direction: Vector3;
+  angle?: number;
+}) {
+  const ref = useRef<Group>(null);
+  useIsFacingCamera(
+    ref,
+    (visible) => {
+      if (ref.current == null) {
+        return;
+      }
+      ref.current.visible = visible;
+    },
+    direction,
+    angle,
+  );
+  return <group ref={ref}>{children}</group>;
+}
+
+export function IncludeWhenFacingCamera({
+  children,
+  direction,
+  angle = Math.PI / 2,
+}: {
+  children?: ReactNode;
+  direction: Vector3;
+  angle?: number;
+}) {
+  const ref = useRef<Group>(null);
+  const [show, setShow] = useState(false);
+  useIsFacingCamera(ref, setShow, direction, angle);
+  return show ? <>{children}</> : null;
+}

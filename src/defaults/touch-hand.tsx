@@ -26,7 +26,7 @@ export function TouchHand({
           filterIntersections={filterIntersections}
         />
       </HandBoneGroup>
-      {children != null ?? <HandBoneGroup joint="wrist">{children}</HandBoneGroup>}
+      {children != null && <HandBoneGroup joint="wrist">{children}</HandBoneGroup>}
     </DynamicHandModel>
   );
 }

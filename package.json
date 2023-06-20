@@ -39,20 +39,22 @@
     "fix:eslint": "eslint src --fix"
   },
   "dependencies": {
-    "@coconut-xr/xinteraction": "^0.0.2",
+    "@coconut-xr/xinteraction": "^0.0.3",
     "@webxr-input-profiles/motion-controllers": "^1.0.0",
+    "meshline": "3.1.6",
     "suspend-react": "^0.0.9"
   },
   "peerDependencies": {
-    "three-stdlib": "*",
-    "zustand": "*",
     "react": "*",
-    "three": ">=0.153.0"
+    "three": ">=0.153.0",
+    "three-stdlib": "*",
+    "zustand": "*"
   },
   "devDependencies": {
     "@react-three/fiber": "^8.11.0",
     "@types/react": "^18.0.27",
     "@types/three": "^0.152.1",
+    "@types/webxr": "^0.5.2",
     "@typescript-eslint/eslint-plugin": "^5.45.1",
     "@typescript-eslint/parser": "^5.45.1",
     "eslint": "^8.29.0",
