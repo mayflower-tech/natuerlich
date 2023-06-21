@@ -1,6 +1,6 @@
 /* eslint-disable react/display-name */
 import { useLoader, useFrame } from "@react-three/fiber";
-import React, { ReactNode, forwardRef, useMemo, useRef } from "react";
+import React, { ReactNode, forwardRef, useMemo, useRef, useImperativeHandle } from "react";
 import { OculusHandModel, GLTFLoader, SkeletonUtils } from "three-stdlib/index.js";
 import {
   getMotionHandModelUrl,
@@ -11,21 +11,20 @@ import {
 } from "../motion-hand.js";
 import { Group, Object3D } from "three";
 
-export function HandBoneGroup({
-  joint,
-  rotationJoint,
-  children,
-}: {
-  joint: XRHandJoint | Array<XRHandJoint>;
-  rotationJoint?: XRHandJoint;
-  children?: ReactNode;
-}) {
-  const ref = useRef<Group>(null);
+export const HandBoneGroup = forwardRef<
+  Group,
+  {
+    joint: XRHandJoint | Array<XRHandJoint>;
+    rotationJoint?: XRHandJoint;
+    children?: ReactNode;
+  }
+>(({ joint, rotationJoint, children }, ref) => {
+  const internalRef = useRef<Group>(null);
   useFrame(() => {
-    if (ref.current == null) {
+    if (internalRef.current == null) {
       return;
     }
-    const motionHand = ref.current.parent;
+    const motionHand = internalRef.current.parent;
     if (motionHand == null || !isMotionHand(motionHand)) {
       throw new Error(`HandBoneGroup can only be placed directly under DynamicHandModel`);
     }
@@ -33,13 +32,13 @@ export function HandBoneGroup({
       ? joint.map(getBoneObject.bind(null, motionHand))
       : getBoneObject(motionHand, joint);
     if (Array.isArray(bone)) {
-      ref.current.position.set(0, 0, 0);
+      internalRef.current.position.set(0, 0, 0);
       for (const object of bone) {
-        ref.current.position.add(object.position);
+        internalRef.current.position.add(object.position);
       }
-      ref.current.position.divideScalar(bone.length);
+      internalRef.current.position.divideScalar(bone.length);
     } else {
-      ref.current.position.copy(bone.position);
+      internalRef.current.position.copy(bone.position);
     }
     const rotationBone = rotationJoint == null ? bone : motionHand.boneMap.get(rotationJoint);
     if (rotationBone == null) {
@@ -48,11 +47,12 @@ export function HandBoneGroup({
     if (Array.isArray(rotationBone)) {
       throw new Error(`multiple rotation joints are not implemented`);
     } else {
-      ref.current.quaternion.copy(rotationBone.quaternion);
+      internalRef.current.quaternion.copy(rotationBone.quaternion);
     }
   });
-  return <group ref={ref}>{children}</group>;
-}
+  useImperativeHandle(ref, () => internalRef.current!);
+  return <group ref={internalRef}>{children}</group>;
+});
 
 export function getBoneObject(motionHand: MotionHand, joint: XRHandJoint) {
   const bone = motionHand.boneMap.get(joint);
@@ -63,7 +63,7 @@ export function getBoneObject(motionHand: MotionHand, joint: XRHandJoint) {
 }
 
 export const DynamicHandModel = forwardRef<
-  OculusHandModel,
+  Object3D,
   {
     handedness: string;
     basePath?: string;
@@ -83,11 +83,8 @@ export const DynamicHandModel = forwardRef<
     }
     updateMotionHand(motionHand, frame, referenceSpace);
   });
-  return (
-    <primitive ref={ref} object={motionHand}>
-      {children}
-    </primitive>
-  );
+  useImperativeHandle(ref, () => motionHand.boneMap.get("wrist")!);
+  return <primitive object={motionHand}>{children}</primitive>;
 });
 
 export const StaticHandModel = forwardRef<

@@ -3,12 +3,20 @@ import { GroupProps, useFrame, useStore } from "@react-three/fiber";
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "react";
 import { useXR } from "../state.js";
 import React from "react";
-import { Mesh, MeshBasicMaterial, PlaneGeometry, Quaternion, Texture, Vector3 } from "three";
+import {
+  Matrix4,
+  Mesh,
+  PlaneGeometry,
+  Quaternion,
+  Texture,
+  Vector3,
+} from "three";
 import { LayerObject, updateLayer } from "./index.js";
 
 const positionHelper = new Vector3();
 const quaternionHelper = new Quaternion();
 const scaleHelper = new Vector3();
+const matrixHelper = new Matrix4();
 
 const planeGeometry = new PlaneGeometry();
 
@@ -83,7 +91,10 @@ export const QuadLayer = forwardRef<
     if (layer == null || internalRef.current == null) {
       return;
     }
-    internalRef.current.matrixWorld.decompose(positionHelper, quaternionHelper, scaleHelper);
+    matrixHelper
+      .multiplyMatrices(state.camera.matrix, state.camera.matrixWorldInverse)
+      .multiply(internalRef.current.matrixWorld)
+      .decompose(positionHelper, quaternionHelper, scaleHelper);
     layer.transform = new XRRigidTransform(positionHelper, quaternionHelper);
     layer.width = scaleHelper.x / 2;
     layer.height = scaleHelper.y / 2;
@@ -94,7 +105,12 @@ export const QuadLayer = forwardRef<
   });
 
   return (
-    <mesh renderOrder={supportsLayers ? -1000 : undefined} geometry={planeGeometry} ref={internalRef} {...(props as any)}>
+    <mesh
+      renderOrder={supportsLayers ? -1000 : undefined}
+      geometry={planeGeometry}
+      ref={internalRef}
+      {...(props as any)}
+    >
       <meshBasicMaterial map={texture} colorWrite={!supportsLayers} />
     </mesh>
   );

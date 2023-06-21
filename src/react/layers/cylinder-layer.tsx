@@ -3,23 +3,13 @@ import { GroupProps, useFrame, useStore } from "@react-three/fiber";
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "react";
 import { useXR } from "../state.js";
 import React from "react";
-import {
-  BackSide,
-  CylinderGeometry,
-  Mesh,
-  MeshBasicMaterial,
-  PlaneGeometry,
-  Quaternion,
-  Texture,
-  Vector3,
-} from "three";
+import { BackSide, CylinderGeometry, Matrix4, Mesh, Quaternion, Texture, Vector3 } from "three";
 import { LayerObject, updateLayer } from "./index.js";
 
 const positionHelper = new Vector3();
 const quaternionHelper = new Quaternion();
 const scaleHelper = new Vector3();
-
-const planeMaterial = new MeshBasicMaterial({ colorWrite: false });
+const matrixHelper = new Matrix4();
 
 const deg60 = (60 * Math.PI) / 180;
 
@@ -110,7 +100,10 @@ export const CylinderLayer = forwardRef<
       if (layer == null || internalRef.current == null) {
         return;
       }
-      internalRef.current.matrixWorld.decompose(positionHelper, quaternionHelper, scaleHelper);
+      matrixHelper
+        .multiplyMatrices(state.camera.matrix, state.camera.matrixWorldInverse)
+        .multiply(internalRef.current.matrixWorld)
+        .decompose(positionHelper, quaternionHelper, scaleHelper);
       layer.transform = new XRRigidTransform(positionHelper, quaternionHelper);
       layer.radius = scaleHelper.x * radius;
       if (needsUpdate.current || layer.needsRedraw) {
