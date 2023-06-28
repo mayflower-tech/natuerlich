@@ -1,15 +1,28 @@
 /* eslint-disable react/display-name */
-import { GroupProps, useFrame, useStore } from "@react-three/fiber";
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "react";
-import { useXR } from "../state.js";
+import { GroupProps, RootState, createPortal } from "@react-three/fiber";
+import {
+  ComponentPropsWithoutRef,
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "react";
 import React from "react";
-import { BackSide, CylinderGeometry, Matrix4, Mesh, Quaternion, Texture, Vector3 } from "three";
-import { LayerObject, updateLayer } from "./index.js";
-
-const positionHelper = new Vector3();
-const quaternionHelper = new Quaternion();
-const scaleHelper = new Vector3();
-const matrixHelper = new Matrix4();
+import {
+  BackSide,
+  BufferGeometry,
+  CylinderGeometry,
+  Mesh,
+  Object3D,
+  Scene,
+  Texture,
+  Vector3,
+  WebGLRenderTarget,
+  WebGLRenderer,
+} from "three";
+import { RenderLayerPortal, useLayer, useLayerUpdate } from "./index.js";
+import { useMeshForwardEventsFromProps } from "@coconut-xr/xinteraction/react";
 
 const deg60 = (60 * Math.PI) / 180;
 
@@ -19,116 +32,152 @@ const deg60 = (60 * Math.PI) / 180;
  * Don't change the content raidus, centralAngle, contentWidth, and contentHeight often due to performance reasons.
  */
 export const CylinderLayer = forwardRef<
-  LayerObject,
+  Object3D,
   GroupProps & {
-    texture: Texture;
-    isStatic?: boolean | undefined;
+    texture?: Texture;
+    updateTarget?: (renderer: WebGLRenderer, target: WebGLRenderTarget) => void;
+    pixelWidth: number;
+    pixelHeight: number;
     colorFormat?: GLenum | undefined;
-    centralAngle?: number;
-    radius?: number;
+    depthFormat?: GLenum | undefined;
     index?: number;
+    transparent?: boolean;
+    geometry?: BufferGeometry;
+    radius?: number;
+    centralAngle?: number;
   }
 >(
   (
-    { colorFormat, isStatic, texture, centralAngle = deg60, radius = 2, index = -1, ...props },
+    {
+      colorFormat,
+      depthFormat,
+      radius = 2,
+      centralAngle = deg60,
+      texture: customTexture,
+      index = -1,
+      pixelHeight,
+      pixelWidth,
+      updateTarget,
+      geometry: customGeometry,
+      transparent = false,
+      ...props
+    },
     ref,
   ) => {
-    const store = useStore();
-    const supportsLayers = useXR(
-      ({ session }) => session?.enabledFeatures?.includes("layers") ?? false,
-    );
-    const content = texture.image as TexImageSource;
     const internalRef = useRef<Mesh>(null);
-    const needsUpdate = useRef(false);
 
-    useImperativeHandle(
-      ref,
-      () =>
-        Object.assign(internalRef.current!, {
-          updateContent: () => {
-            needsUpdate.current = true;
-          },
-        }),
-      [],
+    const isStatic = updateTarget == null;
+
+    const layer = useLayer(
+      useCallback(
+        (binding, space) =>
+          binding.createCylinderLayer({
+            space,
+            viewPixelWidth: pixelWidth,
+            viewPixelHeight: pixelHeight,
+            aspectRatio: pixelWidth / pixelHeight,
+            centralAngle: centralAngle,
+            radius: 0,
+            colorFormat,
+            depthFormat,
+            transform: new XRRigidTransform(),
+            isStatic,
+          }),
+        [centralAngle, colorFormat, depthFormat, pixelHeight, pixelWidth, isStatic],
+      ),
+      transparent,
+      index,
     );
 
-    const layer = useMemo(() => {
-      if (!supportsLayers) {
-        return undefined;
-      }
-      const xrManager = store.getState().gl.xr;
-      const binding = xrManager.getBinding();
-      const space = xrManager.getReferenceSpace();
-      if (space == null) {
-        return undefined;
-      }
-      return binding.createCylinderLayer({
-        space,
-        colorFormat,
-        isStatic,
-        aspectRatio: content.width / content.height,
-        radius: radius,
-        centralAngle: centralAngle,
-        viewPixelWidth: content.width,
-        viewPixelHeight: content.height,
-        transform: new XRRigidTransform(),
-      });
-    }, [
-      centralAngle,
-      colorFormat,
-      content.height,
-      content.width,
-      isStatic,
-      radius,
-      store,
-      supportsLayers,
-    ]);
+    const texture = useLayerUpdate(
+      internalRef,
+      layer,
+      customTexture,
+      transparent,
+      pixelWidth,
+      pixelHeight,
+      updateLayerScale.bind(null, radius),
+      updateTarget,
+    );
 
-    useEffect(() => {
-      if (layer == null) {
-        return;
-      }
-      needsUpdate.current = true;
-      useXR.getState().addLayer(index, layer);
-      return () => {
-        layer.destroy();
-        useXR.getState().removeLayer(layer);
-      };
-    }, [layer, index]);
+    useImperativeHandle(ref, () => internalRef.current!, []);
 
-    useFrame((state, delta, frame: XRFrame | undefined) => {
-      if (layer == null || internalRef.current == null) {
-        return;
-      }
-      matrixHelper
-        .multiplyMatrices(state.camera.matrix, state.camera.matrixWorldInverse)
-        .multiply(internalRef.current.matrixWorld)
-        .decompose(positionHelper, quaternionHelper, scaleHelper);
-      layer.transform = new XRRigidTransform(positionHelper, quaternionHelper);
-      layer.radius = scaleHelper.x * radius;
-      if (needsUpdate.current || layer.needsRedraw) {
-        updateLayer(layer, content, frame, store.getState().gl);
-        needsUpdate.current = false;
-      }
-    });
+    const hasCustomGeometry = customGeometry != null;
 
-    const geometry = useMemo(() => {
-      const width = radius * centralAngle; //(2 * PI * radius = umfang) * angle / (2 * PI)
-      const height = (width * content.height) / content.width;
-      return new CylinderGeometry(radius, radius, height, 32, 1, true, 0, centralAngle).rotateY(
-        Math.PI - centralAngle / 2,
-      );
-    }, [radius, centralAngle, content.height, content.width]);
+    const geometry =
+      useMemo(() => {
+        if (hasCustomGeometry) {
+          return undefined;
+        }
+        const width = radius * centralAngle; //(2 * PI * radius = umfang) * angle / (2 * PI)
+        const height = (width * pixelHeight) / pixelWidth;
+        return new CylinderGeometry(radius, radius, height, 32, 1, true, 0, centralAngle).rotateY(
+          Math.PI - centralAngle / 2,
+        );
+      }, [hasCustomGeometry, radius, centralAngle, pixelHeight, pixelWidth]) ?? customGeometry;
 
     return (
       <mesh
-        renderOrder={supportsLayers ? -1000 : undefined}
+        renderOrder={layer != null ? -1000 : undefined}
+        visible={layer == null || !transparent}
         geometry={geometry}
         ref={internalRef}
         {...(props as any)}
       >
-        <meshBasicMaterial side={BackSide} map={texture} colorWrite={!supportsLayers} />
+        <meshBasicMaterial
+          side={BackSide}
+          map={texture}
+          colorWrite={layer == null}
+          transparent={transparent}
+        />
       </mesh>
     );
   },
 );
+
+function updateLayerScale(radius: number, layer: XRCylinderLayer, scale: Vector3) {
+  layer.radius = scale.x * radius;
+}
+
+export const CylinderLayerPortal = forwardRef<
+  Object3D,
+  Omit<ComponentPropsWithoutRef<typeof CylinderLayer>, "updateTarget" | "texture">
+>(({ children, ...props }, ref) => {
+  const properties = useMemo<Partial<RootState>>(
+    () => ({
+      scene: new Scene(),
+      size: { left: 0, top: 0, width: props.pixelWidth, height: props.pixelHeight },
+    }),
+    [props.pixelHeight, props.pixelWidth],
+  );
+
+  const updateTarget = useCallback((renderer: WebGLRenderer, target: WebGLRenderTarget) => {
+    if (properties.camera == null || properties.scene == null) {
+      return;
+    }
+    const prevTarget = renderer.getRenderTarget();
+    const xrEnabled = renderer.xr.enabled;
+
+    renderer.xr.enabled = false;
+    renderer.setRenderTarget(target);
+    renderer.render(properties.scene, properties.camera);
+
+    renderer.xr.enabled = xrEnabled;
+    renderer.setRenderTarget(prevTarget);
+  }, []);
+
+  const eventProps = useMeshForwardEventsFromProps(properties);
+
+  useImperativeHandle(ref, () => eventProps.ref.current!);
+
+  return (
+    <>
+      {createPortal(
+        <RenderLayerPortal properties={properties}>{children}</RenderLayerPortal>,
+        properties.scene!,
+        properties as Partial<RootState>,
+      )}
+      <CylinderLayer {...props} updateTarget={updateTarget} {...eventProps} />
+    </>
+  );
+});

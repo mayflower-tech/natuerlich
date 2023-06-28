@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import { PerspectiveCameraProps, useStore, useThree } from "@react-three/fiber";
+import { PerspectiveCameraProps, useStore } from "@react-three/fiber";
 import React, { useEffect, useImperativeHandle, useRef } from "react";
 import { forwardRef } from "react";
 import { PerspectiveCamera } from "three";
@@ -8,7 +8,7 @@ export const NonImmersiveCamera = forwardRef<PerspectiveCamera, PerspectiveCamer
   (props, ref) => {
     const store = useStore();
     const internalRef = useRef<PerspectiveCamera>(null);
-    useImperativeHandle(ref, () => internalRef.current!);
+    useImperativeHandle(ref, () => internalRef.current!, []);
 
     useEffect(() => {
       const newCamera = internalRef.current;

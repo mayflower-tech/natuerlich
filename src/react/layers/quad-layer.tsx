@@ -1,22 +1,32 @@
 /* eslint-disable react/display-name */
-import { GroupProps, useFrame, useStore } from "@react-three/fiber";
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "react";
-import { useXR } from "../state.js";
+import { GroupProps, RootState, createPortal } from "@react-three/fiber";
+import {
+  ComponentPropsWithoutRef,
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "react";
 import React from "react";
 import {
-  Matrix4,
+  BufferGeometry,
+  Camera,
   Mesh,
+  Object3D,
+  PerspectiveCamera,
   PlaneGeometry,
-  Quaternion,
+  Scene,
   Texture,
   Vector3,
+  WebGLRenderTarget,
+  WebGLRenderer,
 } from "three";
-import { LayerObject, updateLayer } from "./index.js";
-
-const positionHelper = new Vector3();
-const quaternionHelper = new Quaternion();
-const scaleHelper = new Vector3();
-const matrixHelper = new Matrix4();
+import { RenderLayerPortal, useLayer, useLayerUpdate } from "./index.js";
+import {
+  useMeshForwardEvents,
+  useMeshForwardEventsFromProps,
+} from "@coconut-xr/xinteraction/react";
 
 const planeGeometry = new PlaneGeometry();
 
@@ -26,92 +36,134 @@ const planeGeometry = new PlaneGeometry();
  * Don't change the content size often due to performance reasons.
  */
 export const QuadLayer = forwardRef<
-  LayerObject,
+  Object3D,
   GroupProps & {
-    texture: Texture;
-    isStatic?: boolean | undefined;
+    texture?: Texture;
+    updateTarget?: (renderer: WebGLRenderer, target: WebGLRenderTarget) => void;
+    pixelWidth: number;
+    pixelHeight: number;
     colorFormat?: GLenum | undefined;
+    depthFormat?: GLenum | undefined;
     index?: number;
+    transparent?: boolean;
+    geometry?: BufferGeometry;
   }
->(({ colorFormat, isStatic, texture, index = -1, ...props }, ref) => {
-  const store = useStore();
-  const supportsLayers = useXR(
-    ({ session }) => session?.enabledFeatures?.includes("layers") ?? false,
-  );
-  const content = texture.image as TexImageSource;
-  const internalRef = useRef<Mesh>(null);
-  const needsUpdate = useRef(false);
-
-  useImperativeHandle(
-    ref,
-    () =>
-      Object.assign(internalRef.current!, {
-        updateContent: () => {
-          needsUpdate.current = true;
-        },
-      }),
-    [],
-  );
-
-  const layer = useMemo(() => {
-    if (!supportsLayers) {
-      return undefined;
-    }
-    const xrManager = store.getState().gl.xr;
-    const binding = xrManager.getBinding();
-    const space = xrManager.getReferenceSpace();
-    if (space == null) {
-      return undefined;
-    }
-    const layer = binding.createQuadLayer({
-      space,
+>(
+  (
+    {
       colorFormat,
-      height: 0,
-      isStatic,
-      width: 0,
-      viewPixelWidth: content.width,
-      viewPixelHeight: content.height,
-    });
-    return layer;
-  }, [colorFormat, content.height, content.width, isStatic, store, supportsLayers]);
+      depthFormat,
+      texture: customTexture,
+      index = -1,
+      pixelHeight,
+      pixelWidth,
+      updateTarget,
+      geometry = planeGeometry,
+      transparent = false,
+      ...props
+    },
+    ref,
+  ) => {
+    const internalRef = useRef<Mesh>(null);
 
-  useEffect(() => {
-    if (layer == null) {
+    const isStatic = updateTarget == null;
+
+    const layer = useLayer(
+      useCallback(
+        (binding, space) =>
+          binding.createQuadLayer({
+            space,
+            viewPixelHeight: pixelHeight,
+            viewPixelWidth: pixelWidth,
+            width: 0,
+            height: 0,
+            isStatic,
+            colorFormat,
+            depthFormat,
+            transform: new XRRigidTransform(),
+          }),
+        [colorFormat, depthFormat, isStatic, pixelHeight, pixelWidth],
+      ),
+      transparent,
+      index,
+    );
+
+    const texture = useLayerUpdate(
+      internalRef,
+      layer,
+      customTexture,
+      transparent,
+      pixelWidth,
+      pixelHeight,
+      updateLayerScale,
+      updateTarget,
+    );
+
+    useImperativeHandle(ref, () => internalRef.current!, []);
+
+    return (
+      <mesh
+        renderOrder={layer != null ? -1000 : undefined}
+        ref={internalRef}
+        visible={layer == null || !transparent}
+        geometry={geometry}
+        {...(props as any)}
+      >
+        <meshBasicMaterial
+          transparent={transparent}
+          map={texture}
+          depthWrite={true}
+          colorWrite={layer == null}
+        />
+      </mesh>
+    );
+  },
+);
+
+function updateLayerScale(layer: XRQuadLayer, scale: Vector3) {
+  layer.width = scale.x / 2;
+  layer.height = scale.y / 2;
+}
+
+export const QuadLayerPortal = forwardRef<
+  Object3D,
+  Omit<ComponentPropsWithoutRef<typeof QuadLayer>, "updateTarget" | "texture">
+>(({ children, ...props }, ref) => {
+  const properties = useMemo<Partial<RootState>>(
+    () => ({
+      scene: new Scene(),
+      size: { left: 0, top: 0, width: props.pixelWidth, height: props.pixelHeight },
+    }),
+    [props.pixelHeight, props.pixelWidth],
+  );
+
+  const updateTarget = useCallback((renderer: WebGLRenderer, target: WebGLRenderTarget) => {
+    if (properties.camera == null || properties.scene == null) {
       return;
     }
-    needsUpdate.current = true;
-    useXR.getState().addLayer(index, layer);
-    return () => {
-      layer.destroy();
-      useXR.getState().removeLayer(layer);
-    };
-  }, [layer, index]);
+    const prevTarget = renderer.getRenderTarget();
+    const xrEnabled = renderer.xr.enabled;
 
-  useFrame((state, delta, frame: XRFrame | undefined) => {
-    if (layer == null || internalRef.current == null) {
-      return;
-    }
-    matrixHelper
-      .multiplyMatrices(state.camera.matrix, state.camera.matrixWorldInverse)
-      .multiply(internalRef.current.matrixWorld)
-      .decompose(positionHelper, quaternionHelper, scaleHelper);
-    layer.transform = new XRRigidTransform(positionHelper, quaternionHelper);
-    layer.width = scaleHelper.x / 2;
-    layer.height = scaleHelper.y / 2;
-    if (needsUpdate.current || layer.needsRedraw) {
-      updateLayer(layer, content, frame, store.getState().gl);
-      needsUpdate.current = false;
-    }
-  });
+    renderer.xr.enabled = false;
+    renderer.setRenderTarget(target);
+    renderer.render(properties.scene, properties.camera);
+
+    renderer.xr.enabled = xrEnabled;
+    renderer.setRenderTarget(prevTarget);
+  }, []);
+
+  const eventProps = useMeshForwardEventsFromProps(properties);
+
+  useImperativeHandle(ref, () => eventProps.ref.current!);
 
   return (
-    <mesh
-      renderOrder={supportsLayers ? -1000 : undefined}
-      geometry={planeGeometry}
-      ref={internalRef}
-      {...(props as any)}
-    >
-      <meshBasicMaterial map={texture} colorWrite={!supportsLayers} />
-    </mesh>
+    <>
+      {createPortal(
+        <RenderLayerPortal properties={properties}>{children}</RenderLayerPortal>,
+        properties.scene!,
+        properties as Partial<RootState>,
+      )}
+      <QuadLayer {...props} updateTarget={updateTarget} {...eventProps} />
+    </>
   );
 });

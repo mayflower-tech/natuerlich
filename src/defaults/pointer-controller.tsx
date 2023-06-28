@@ -5,10 +5,12 @@ import { XIntersection } from "@coconut-xr/xinteraction";
 import React from "react";
 import { SpaceGroup } from "../react/space.js";
 import { DynamicControllerModel } from "../react/controller.js";
-import { BoxGeometry } from "three";
+import { BoxGeometry, Vector3 } from "three";
 
 const geometry = new BoxGeometry();
 geometry.translate(0, 0, -0.5);
+
+const negZAxis = new Vector3(0,0,-1)
 
 export function PointerController({
   inputSource,
@@ -58,14 +60,13 @@ export function PointerController({
         </SpaceGroup>
       )}
       <SpaceGroup space={inputSource.targetRaySpace}>
-        <group rotation-y={Math.PI}>
           <XStraightPointer
             onIntersections={onIntersections}
             id={id}
+            direction={negZAxis}
             ref={pointerRef}
             filterIntersections={filterIntersections}
           />
-        </group>
 
         <mesh scale={[0.01, 0.01, 1]} geometry={geometry}>
           <meshBasicMaterial color={0xffffff} />

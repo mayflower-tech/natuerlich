@@ -154,7 +154,7 @@ export function DoubleGrabCube() {
       }}
       ref={ref}
     >
-      <meshBasicMaterial color={hovered.length > 0 ? 0xff0000 : 0xaa0000 } toneMapped={false} />
+      <meshBasicMaterial color={hovered.length > 0 ? 0x000000 : 0xaa0000} toneMapped={false} />
     </Box>
   );
 }

@@ -16,6 +16,10 @@ export * from "./session-origin.js";
 export * from "./anchor.js";
 export * from "./camera.js";
 export * from "./layers/index.js";
+export * from "./plane.js";
+export * from "./image.js";
+export * from "./background.js";
+export * from "./pose.js";
 
 export function useNativeFramebufferScaling(): number | undefined {
   return useXR((state) =>

@@ -39,7 +39,7 @@
     "fix:eslint": "eslint src --fix"
   },
   "dependencies": {
-    "@coconut-xr/xinteraction": "^0.0.4",
+    "@coconut-xr/xinteraction": "^0.0.7",
     "@webxr-input-profiles/motion-controllers": "^1.0.0",
     "meshline": "3.1.6",
     "suspend-react": "^0.0.9"
@@ -51,6 +51,7 @@
     "zustand": "*"
   },
   "devDependencies": {
+    "@coconut-xr/koestlich": "^0.0.15",
     "@react-three/fiber": "^8.11.0",
     "@types/react": "^18.0.27",
     "@types/three": "^0.152.1",

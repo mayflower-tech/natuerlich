@@ -1,6 +1,15 @@
 /* eslint-disable react/no-unknown-property */
-import { Canvas, GroupProps, useLoader, useStore } from "@react-three/fiber";
-import { Suspense, useCallback, useRef, useState } from "react";
+import { Canvas, GroupProps, createPortal, useLoader, useStore } from "@react-three/fiber";
+import {
+  ComponentProps,
+  ReactNode,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   SpaceGroup,
   XR,
@@ -17,17 +26,36 @@ import {
   QuadLayer,
   ImmersiveSessionOrigin,
   NonImmersiveCamera,
-  getInputSourceId,
+  useTrackedPlanes,
+  TrackedPlane,
+  useInitRoomCapture,
+  IncludeWhenInSessionMode,
+  useHandPoses,
+  Background,
+  CylinderLayerPortal,
+  QuadLayerPortal,
 } from "@coconut-xr/natuerlich/react";
-import { BoxGeometry, PlaneGeometry, TextureLoader, Vector3 } from "three";
+import {
+  BoxGeometry,
+  BufferGeometry,
+  PerspectiveCamera,
+  PlaneGeometry,
+  Scene,
+  TextureLoader,
+  Vector3,
+  WebGLRenderTarget,
+  WebGLRenderer,
+} from "three";
 import {
   InputDeviceFunctions,
   XSphereCollider,
   XStraightPointer,
   XWebPointers,
+  noEvents,
+  useMeshForwardEvents,
 } from "@coconut-xr/xinteraction/react";
-import { XIntersection, getDistanceSquaredInNDC } from "@coconut-xr/xinteraction";
-import { Container, RootContainer, Text, isIntersectionNotClipped } from "@coconut-xr/koestlich";
+import { XIntersection } from "@coconut-xr/xinteraction";
+import { Container, RootContainer, Text } from "@coconut-xr/koestlich";
 import {
   Select,
   Button,
@@ -60,8 +88,16 @@ import {
   Trash,
 } from "@coconut-xr/kruemel/icons/outline";
 import { AnchorObject } from "./anchor-object.js";
-import { TeleportController, TeleportHand, TeleportTarget } from "../dist/defaults/teleport.js";
 import { Plane } from "@react-three/drei";
+import { DoubleGrabCube } from "./double-grab.js";
+import {
+  TeleportTarget,
+  PointerHand,
+  PointerController,
+  TeleportController,
+  KoestlichQuadLayer,
+} from "@coconut-xr/natuerlich/defaults";
+import { getInputSourceId, getPlaneId } from "@coconut-xr/natuerlich";
 
 const tableData = [
   ["Entry Name", "Entry Number", "Entry Description"],
@@ -71,12 +107,19 @@ const tableData = [
 ];
 
 const sessionOptions: XRSessionInit = {
-  requiredFeatures: ["local-floor", "hand-tracking", "anchors", "layers"],
+  requiredFeatures: [
+    "local-floor",
+    "hand-tracking",
+    "anchors",
+    "layers",
+    //"depth-sorted-layers",
+    //"plane-detection",
+  ],
 };
 
 export default function Index() {
   useSessionGrant();
-  const [position, setPosition] = useState(new Vector3());
+  const [position, setPosition] = useState(new Vector3(2, 0, 1.5));
   const enterAR = useEnterXR("immersive-ar", sessionOptions);
   const enterVR = useEnterXR("immersive-vr", sessionOptions);
   const frameBufferScaling = useNativeFramebufferScaling();
@@ -92,26 +135,56 @@ export default function Index() {
         shadows
         gl={{ localClippingEnabled: true }}
         style={{ width: "100vw", height: "100svh", touchAction: "none" }}
-        events={() => ({ enabled: false, priority: 0 })}
+        events={noEvents}
       >
+        <IncludeWhenInSessionMode allow="none">
+          <Background color="red" />
+        </IncludeWhenInSessionMode>
         <ambientLight intensity={1} />
         <XR frameBufferScaling={frameBufferScaling} frameRate={frameRate} />
-        <XWebPointers filterIntersections={(is) => is.filter(isIntersectionNotClipped)} />
+        <XWebPointers />
         <ImmersiveSessionOrigin position={position}>
           <InputSources onTeleport={setPosition} />
         </ImmersiveSessionOrigin>
-        <NonImmersiveCamera />
+        <NonImmersiveCamera position={[0, 0, 5]} />
         <AnchorObject />
-        <NormalTexture />
+        <Suspense>
+          <NormalTexture />
+        </Suspense>
         <TeleportTarget>
           <Plane scale={100} rotation={[-Math.PI / 2, 0, 0]} />
         </TeleportTarget>
         <Suspense>
           <QuadLayerTexture />
         </Suspense>
-        <CylinderLayerTexture />
+        <Suspense>
+          <CylinderLayerTexture />
+        </Suspense>
+        <TrackedPlanes />
+        <KoestlichQuadLayer pixelWidth={1024} pixelHeight={1024} position={[-2, 1, 0]}>
+          <Koestlich />
+          <DoubleGrabCube />
+        </KoestlichQuadLayer>
+        <QuadLayerPortal pixelWidth={1024} pixelHeight={1024} position={[2, 1, 0]}>
+          <Background color="green" />
+          <DoubleGrabCube />
+          <NonImmersiveCamera position={[0, 0, 5]} />
+        </QuadLayerPortal>
         {/*<DoubleGrabCube />*/}
       </Canvas>
+    </>
+  );
+}
+
+function TrackedPlanes() {
+  const planes = useTrackedPlanes();
+  return (
+    <>
+      {planes?.map((plane) => (
+        <TrackedPlane plane={plane} key={getPlaneId(plane)}>
+          <meshPhongMaterial color="red" />
+        </TrackedPlane>
+      ))}
     </>
   );
 }
@@ -121,7 +194,7 @@ const planeGeometry = new PlaneGeometry();
 function NormalTexture() {
   const texture = useLoader(TextureLoader, "test.png");
   return (
-    <mesh position={[1, 1, 0]} geometry={planeGeometry}>
+    <mesh onPointerEnter={console.log} position={[1, 1, 0]} geometry={planeGeometry}>
       <meshBasicMaterial map={texture} />
     </mesh>
   );
@@ -129,12 +202,27 @@ function NormalTexture() {
 
 function QuadLayerTexture() {
   const texture = useLoader(TextureLoader, "test.png");
-  return <QuadLayer position={[0, 1, 0]} texture={texture} />;
+  return (
+    <QuadLayer
+      position={[0, 1, 0]}
+      texture={texture}
+      pixelWidth={texture.image.width}
+      pixelHeight={texture.image.height}
+    />
+  );
 }
 
 function CylinderLayerTexture() {
   const texture = useLoader(TextureLoader, "test.png");
-  return <CylinderLayer index={-2} position={[-1, 0, 1.5]} texture={texture} />;
+  return (
+    <CylinderLayer
+      index={-2}
+      position={[-1, 0, 1.5]}
+      texture={texture}
+      pixelWidth={texture.image.width}
+      pixelHeight={texture.image.height}
+    />
+  );
 }
 
 function InputSources({ onTeleport }: { onTeleport: (point: Vector3) => void }) {
@@ -144,15 +232,30 @@ function InputSources({ onTeleport }: { onTeleport: (point: Vector3) => void }) 
       {inputSources.map((inputSource) =>
         inputSource == null || inputSource.handedness === "none" ? null : inputSource.hand !=
           null ? (
-          <TeleportHand
+          <Hand
+            hand={inputSource.hand}
+            inputSource={inputSource}
             key={getInputSourceId(inputSource)}
+          />
+        ) : (
+          /*<PointerHand
+            key={getInputSourceId(inputSource)}
+            inputSource={inputSource}
+            hand={inputSource.hand}
+            id={inputSource.handedness === "left" ? -5 : -6}
+          />*/
+          /*<TeleportHand
+            
             hand={inputSource.hand}
             onTeleport={onTeleport}
             inputSource={inputSource}
             id={inputSource.handedness === "left" ? -5 : -6}
-          />
-        ) : (
-          //<Hand inputSource={inputSource} hand={inputSource.hand} />
+          />*/
+          /*<PointerController
+            key={getInputSourceId(inputSource)}
+            inputSource={inputSource}
+            id={inputSource.handedness === "left" ? -5 : -6}
+          />*/
           <TeleportController
             onTeleport={onTeleport}
             id={inputSource.handedness === "left" ? -5 : -6}
@@ -168,14 +271,43 @@ function InputSources({ onTeleport }: { onTeleport: (point: Vector3) => void }) 
 function Hand({ hand, inputSource }: { hand: XRHand; inputSource: XRInputSource }) {
   const pointerRef = useRef<InputDeviceFunctions>(null);
   const colliderRef = useRef<InputDeviceFunctions>(null);
+  const initiateRoomCapture = useInitRoomCapture();
 
-  useInputSourceEvent("selectstart", inputSource, (e) => pointerRef.current?.press(0, e), []);
+  useHandPoses(
+    hand,
+    inputSource.handedness,
+    (name, prevName) => {
+      const isFist = name === "fist";
+      const wasFist = prevName === "fist";
+      if (isFist == wasFist) {
+        return;
+      }
+      if (isFist) {
+        colliderRef.current?.press(0, {});
+        return;
+      }
+      if (wasFist) {
+        colliderRef.current?.release(0, {});
+        return;
+      }
+    },
+    {
+      fist: "fist.handpose",
+      relax: "relax.handpose",
+      point: "point.handpose",
+    },
+  );
+
+  useInputSourceEvent(
+    "selectstart",
+    inputSource,
+    (e) => {
+      pointerRef.current?.press(0, e);
+      initiateRoomCapture?.();
+    },
+    [],
+  );
   useInputSourceEvent("selectend", inputSource, (e) => pointerRef.current?.release(0, e), []);
-
-  useInputSourceEvent("selectstart", inputSource, (e) => colliderRef.current?.press(0, e), []);
-  useInputSourceEvent("selectend", inputSource, (e) => colliderRef.current?.release(0, e), []);
-
-  const store = useStore();
 
   return (
     <>
@@ -194,26 +326,21 @@ function Hand({ hand, inputSource }: { hand: XRHand; inputSource: XRInputSource 
           </HandBoneGroup>
         ) : (
           <>
-            <HandBoneGroup joint={"index-finger-tip"}>
+            {/*<HandBoneGroup joint={"index-finger-tip"}>
               <XSphereCollider
                 radius={0.03}
                 distanceElement={{ id: 0, downRadius: 0.01 }}
                 id={inputSource.handedness === "left" ? -5 : -6}
-                isDrag={(i1, i2) =>
-                  getDistanceSquaredInNDC(store.getState().camera, i1.point, i2.point) > 0.000008
-                }
-                filterIntersections={(is) => is.filter(isIntersectionNotClipped)}
               />
-            </HandBoneGroup>
-
-            {/* <HandBoneGroup rotationJoint="wrist" joint={["thumb-tip", "index-finger-tip"]}>
+        </HandBoneGroup>*/}
+            <HandBoneGroup joint="wrist">
               <XSphereCollider
                 ref={colliderRef}
                 radius={0.01}
                 id={inputSource.handedness === "left" ? -3 : -4}
-                filterIntersections={(is) => is.filter(isIntersectionNotClipped)}
               />
-            </HandBoneGroup>*/}
+            </HandBoneGroup>
+            *
           </>
         )}
       </DynamicHandModel>
@@ -243,7 +370,7 @@ function Controller({ inputSource }: { inputSource: XRInputSource }) {
   useInputSourceEvent("squeezeend", inputSource, (e) => colliderRef.current?.release(0, e), []);
 
   const onIntersections = useCallback(
-    (intersections: Array<XIntersection>) => {
+    (intersections: ReadonlyArray<XIntersection>) => {
       const prevIntersected = intersectionLength.current > 0;
       const currentIntersected = intersections.length > 0;
       intersectionLength.current = intersections.length;
@@ -267,13 +394,14 @@ function Controller({ inputSource }: { inputSource: XRInputSource }) {
       {inputSource.gripSpace != null && (
         <SpaceGroup space={inputSource.gripSpace}>
           {inputSource.handedness === "left" ? (
-            <Koestlich scale={0.05} />
+            <RootContainer height={3} width={3}>
+              <Koestlich scale={0.05} />
+            </RootContainer>
           ) : (
             <XSphereCollider
               ref={colliderRef}
               radius={0.05}
               id={inputSource.handedness === "left" ? -3 : -4}
-              filterIntersections={(is) => is.filter(isIntersectionNotClipped)}
             />
           )}
           <Suspense fallback={null}>
@@ -287,7 +415,6 @@ function Controller({ inputSource }: { inputSource: XRInputSource }) {
             onIntersections={onIntersections}
             id={inputSource.handedness === "left" ? -1 : -2}
             ref={pointerRef}
-            filterIntersections={(is) => is.filter(isIntersectionNotClipped)}
           />
         </group>
 
@@ -305,198 +432,196 @@ function Koestlich(props: GroupProps) {
   const [sliderValue, setSliderValue] = useState(0.5);
 
   return (
-    <group {...props}>
-      <RootContainer
-        backgroundOpacity={0.5}
-        backgroundColor="white"
-        height={3}
-        width={3}
-        alignItems="flex-start"
-        padding={0.2}
-        borderRadius={0.2}
-        overflow="scroll"
-        flexDirection="column"
+    <Container
+      backgroundOpacity={0.5}
+      backgroundColor="white"
+      width="100%"
+      height="100%"
+      alignItems="flex-start"
+      padding={0.2}
+      borderRadius={0.2}
+      overflow="scroll"
+      flexDirection="column"
+    >
+      <Text fontSize={0.2}>Button</Text>
+      <Button onClick={() => setChecked((checked) => !checked)}>Toggle Checked</Button>
+
+      <Text fontSize={0.2} marginTop={0.2}>
+        Checkbox
+      </Text>
+      <Container
+        alignItems="center"
+        flexDirection="row"
+        onClick={() => setChecked((checked) => !checked)}
       >
-        <Text fontSize={0.2}>Button</Text>
-        <Button onClick={() => setChecked((checked) => !checked)}>Toggle Checked</Button>
+        <Checkbox marginRight={0.02} checked={checked} />
+        <Text>Checked</Text>
+      </Container>
 
-        <Text fontSize={0.2} marginTop={0.2}>
-          Checkbox
-        </Text>
-        <Container
-          alignItems="center"
-          flexDirection="row"
-          onClick={() => setChecked((checked) => !checked)}
+      <Text fontSize={0.2} marginTop={0.2}>
+        Toggle
+      </Text>
+      <Container
+        alignItems="center"
+        flexDirection="row"
+        onClick={() => setChecked((checked) => !checked)}
+      >
+        <Toggle marginRight={0.02} checked={checked} />
+        <Text>Checked</Text>
+      </Container>
+
+      <Text fontSize={0.2} marginTop={0.2}>
+        Dropdown
+      </Text>
+      <Dropdown>
+        <Button onClick={() => setChecked((checked) => !checked)}>Toggle Dropdown</Button>
+        <DropdownContent
+          border={0.003}
+          borderColor="black"
+          borderOpacity={0.5}
+          padding={0.015}
+          open={checked}
         >
-          <Checkbox marginRight={0.02} checked={checked} />
-          <Text>Checked</Text>
-        </Container>
+          <Text>Dropdown Content</Text>
+        </DropdownContent>
+      </Dropdown>
 
-        <Text fontSize={0.2} marginTop={0.2}>
-          Toggle
-        </Text>
-        <Container
-          alignItems="center"
-          flexDirection="row"
-          onClick={() => setChecked((checked) => !checked)}
-        >
-          <Toggle marginRight={0.02} checked={checked} />
-          <Text>Checked</Text>
-        </Container>
+      <Text fontSize={0.2} marginTop={0.2}>
+        Slider
+      </Text>
+      <Slider value={sliderValue} range={10} onChange={setSliderValue} />
 
-        <Text fontSize={0.2} marginTop={0.2}>
-          Dropdown
-        </Text>
-        <Dropdown>
-          <Button onClick={() => setChecked((checked) => !checked)}>Toggle Dropdown</Button>
-          <DropdownContent
-            border={0.003}
-            borderColor="black"
-            borderOpacity={0.5}
-            padding={0.015}
-            open={checked}
+      <Text fontSize={0.2} marginTop={0.2}>
+        Select
+      </Text>
+      <Select
+        value={activeTab}
+        options={new Array(3).fill(null).map((_, i) => ({ value: i, label: `Option ${i + 1}` }))}
+        onChange={setActiveTab}
+      />
+
+      <Text fontSize={0.2} marginTop={0.2}>
+        Radio
+      </Text>
+      <Container gapRow={0.1} alignItems="center" flexDirection="column">
+        {new Array(3).fill(null).map((_, i) => (
+          <Container
+            key={i}
+            alignItems="center"
+            flexDirection="row"
+            onClick={() => setActiveTab(i)}
           >
-            <Text>Dropdown Content</Text>
-          </DropdownContent>
-        </Dropdown>
+            <Radio marginRight={0.02} checked={i === activeTab ? true : false} />
+            <Text>{`Radio ${i + 1}`}</Text>
+          </Container>
+        ))}
+      </Container>
 
-        <Text fontSize={0.2} marginTop={0.2}>
-          Slider
-        </Text>
-        <Slider value={sliderValue} range={10} onChange={setSliderValue} />
+      <Text fontSize={0.2} marginTop={0.2}>
+        Tabs
+      </Text>
+      <Tabs width="100%">
+        {new Array(3).fill(null).map((_, i) => (
+          <Tab key={i} onClick={() => setActiveTab(i)} active={i === activeTab}>{`Tab ${
+            i + 1
+          }`}</Tab>
+        ))}
+      </Tabs>
 
-        <Text fontSize={0.2} marginTop={0.2}>
-          Select
-        </Text>
-        <Select
-          value={activeTab}
-          options={new Array(3).fill(null).map((_, i) => ({ value: i, label: `Option ${i + 1}` }))}
-          onChange={setActiveTab}
-        />
+      <Text fontSize={0.2} marginTop={0.2}>
+        Table
+      </Text>
+      <Table>
+        {tableData.map((rowData, rowIndex) => (
+          <TableRow key={rowIndex}>
+            {rowData.map((cellData, columnIndex) => (
+              <TableCell key={columnIndex}>
+                <Text>{cellData}</Text>
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </Table>
+      <Text fontSize={0.2} marginTop={0.2}>
+        Link
+      </Text>
+      <Container flexDirection="row">
+        <Text>Find our Website </Text>
+        <Link href="https://coconut-xr.com" target="_blank">
+          here.
+        </Link>
+      </Container>
 
-        <Text fontSize={0.2} marginTop={0.2}>
-          Radio
-        </Text>
-        <Container gapRow={0.1} alignItems="center" flexDirection="column">
-          {new Array(3).fill(null).map((_, i) => (
-            <Container
-              key={i}
-              alignItems="center"
-              flexDirection="row"
-              onClick={() => setActiveTab(i)}
-            >
-              <Radio marginRight={0.02} checked={i === activeTab ? true : false} />
-              <Text>{`Radio ${i + 1}`}</Text>
-            </Container>
-          ))}
-        </Container>
+      <Text fontSize={0.2} marginTop={0.2}>
+        Steps
+      </Text>
+      <Steps maxWidth={4}>
+        <StepNumbers>
+          <StepNumber>1</StepNumber>
+          <StepConnection />
+          <StepNumber>2</StepNumber>
+          <StepConnection />
+          <StepNumber>3</StepNumber>
+          <StepConnection backgroundColor="gray" />
+          <StepNumber backgroundColor="gray">4</StepNumber>
+        </StepNumbers>
+        <StepTitles>
+          <StepTitle>Login</StepTitle>
+          <StepTitle>Do Something</StepTitle>
+          <StepTitle>Logout</StepTitle>
+          <StepTitle>Shut Down</StepTitle>
+        </StepTitles>
+      </Steps>
 
-        <Text fontSize={0.2} marginTop={0.2}>
-          Tabs
-        </Text>
-        <Tabs width="100%">
-          {new Array(3).fill(null).map((_, i) => (
-            <Tab key={i} onClick={() => setActiveTab(i)} active={i === activeTab}>{`Tab ${
-              i + 1
-            }`}</Tab>
-          ))}
-        </Tabs>
+      <Text fontSize={0.2} marginTop={0.2}>
+        Icons
+      </Text>
+      <Container flexWrap="wrap" flexDirection="row" gapColumn={0.1}>
+        <Plus />
+        <Play />
+        <Pause />
+        <Trash />
+        <MagnifyingGlass />
+      </Container>
 
-        <Text fontSize={0.2} marginTop={0.2}>
-          Table
-        </Text>
-        <Table>
-          {tableData.map((rowData, rowIndex) => (
-            <TableRow key={rowIndex}>
-              {rowData.map((cellData, columnIndex) => (
-                <TableCell key={columnIndex}>
-                  <Text>{cellData}</Text>
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </Table>
-        <Text fontSize={0.2} marginTop={0.2}>
-          Link
-        </Text>
-        <Container flexDirection="row">
-          <Text>Find our Website </Text>
-          <Link href="https://coconut-xr.com" target="_blank">
-            here.
-          </Link>
-        </Container>
+      <Text fontSize={0.2} marginTop={0.2}>
+        Pagination
+      </Text>
+      <Container flexDirection="row">
+        <Button>1</Button>
+        <Button backgroundColor="gray">2</Button>
+        <Button backgroundColor="gray">3</Button>
+        <Button backgroundColor="gray">4</Button>
+      </Container>
 
-        <Text fontSize={0.2} marginTop={0.2}>
-          Steps
-        </Text>
-        <Steps maxWidth={4}>
-          <StepNumbers>
-            <StepNumber>1</StepNumber>
-            <StepConnection />
-            <StepNumber>2</StepNumber>
-            <StepConnection />
-            <StepNumber>3</StepNumber>
-            <StepConnection backgroundColor="gray" />
-            <StepNumber backgroundColor="gray">4</StepNumber>
-          </StepNumbers>
-          <StepTitles>
-            <StepTitle>Login</StepTitle>
-            <StepTitle>Do Something</StepTitle>
-            <StepTitle>Logout</StepTitle>
-            <StepTitle>Shut Down</StepTitle>
-          </StepTitles>
-        </Steps>
+      <Text fontSize={0.2} marginTop={0.2}>
+        Navbar
+      </Text>
 
-        <Text fontSize={0.2} marginTop={0.2}>
-          Icons
+      <Container
+        width="100%"
+        maxWidth={4}
+        backgroundColor="black"
+        flexDirection="row"
+        justifyContent="space-between"
+        alignItems="center"
+        paddingY={0.06}
+        paddingX={0.1}
+        gapColumn={0.1}
+      >
+        <Bars3 height={0.05} color="white" />
+        <Text color="white" fontSize={0.1}>
+          COCONUT-XR
         </Text>
-        <Container flexWrap="wrap" flexDirection="row" gapColumn={0.1}>
-          <Plus />
-          <Play />
-          <Pause />
-          <Trash />
-          <MagnifyingGlass />
-        </Container>
+        <Container flexGrow={1} />
+        <MagnifyingGlass color="white" />
+        <Plus color="white" />
+      </Container>
 
-        <Text fontSize={0.2} marginTop={0.2}>
-          Pagination
-        </Text>
-        <Container flexDirection="row">
-          <Button>1</Button>
-          <Button backgroundColor="gray">2</Button>
-          <Button backgroundColor="gray">3</Button>
-          <Button backgroundColor="gray">4</Button>
-        </Container>
-
-        <Text fontSize={0.2} marginTop={0.2}>
-          Navbar
-        </Text>
-
-        <Container
-          width="100%"
-          maxWidth={4}
-          backgroundColor="black"
-          flexDirection="row"
-          justifyContent="space-between"
-          alignItems="center"
-          paddingY={0.06}
-          paddingX={0.1}
-          gapColumn={0.1}
-        >
-          <Bars3 height={0.05} color="white" />
-          <Text color="white" fontSize={0.1}>
-            COCONUT-XR
-          </Text>
-          <Container flexGrow={1} />
-          <MagnifyingGlass color="white" />
-          <Plus color="white" />
-        </Container>
-
-        <Text fontSize={0.2} marginTop={0.2}>
-          Progress
-        </Text>
-        <Progess value={0.5} />
-      </RootContainer>
-    </group>
+      <Text fontSize={0.2} marginTop={0.2}>
+        Progress
+      </Text>
+      <Progess value={0.5} />
+    </Container>
   );
 }

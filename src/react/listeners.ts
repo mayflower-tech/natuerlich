@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { getInputSourceId, useXR } from "./index.js";
+import { useXR } from "./index.js";
 import { shallow } from "zustand/shallow";
+import { getInputSourceId } from "../index.js";
 
 export function useSessionChange(
   onSessionChange: (session: XRSession | undefined, prevSession: XRSession | undefined) => void,

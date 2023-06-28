@@ -2,8 +2,7 @@ import { Camera, RootState } from "@react-three/fiber";
 import { Object3D, PerspectiveCamera } from "three";
 import { StoreApi, create } from "zustand";
 import { combine } from "zustand/middleware";
-
-const xrInputSourceIdMap = new Map<XRInputSource, number>();
+import { getInputSourceId } from "../index.js";
 
 export type XRInputSourceMap = Map<number, XRInputSource>;
 
@@ -32,14 +31,6 @@ export type XRState = (
 
 export type GrabbableEventListener = (inputSourceId: number, target: Object3D) => void;
 
-export function getInputSourceId(inputSource: XRInputSource): number {
-  let id = xrInputSourceIdMap.get(inputSource);
-  if (id == null) {
-    xrInputSourceIdMap.set(inputSource, (id = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)));
-  }
-  return id;
-}
-
 const initialState = {
   mode: "none",
 } as XRState;
@@ -65,7 +56,7 @@ export const useXR = create(
       if (state.layers == null || state.session == null) {
         return;
       }
-      state.layers.filter(({ layer: l }) => l != layer);
+      state.layers = state.layers.filter(({ layer: l }) => l != layer);
       state.session.updateRenderState({
         layers: state.layers.map(({ layer }) => layer),
       });

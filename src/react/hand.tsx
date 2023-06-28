@@ -50,7 +50,7 @@ export const HandBoneGroup = forwardRef<
       internalRef.current.quaternion.copy(rotationBone.quaternion);
     }
   });
-  useImperativeHandle(ref, () => internalRef.current!);
+  useImperativeHandle(ref, () => internalRef.current!, []);
   return <group ref={internalRef}>{children}</group>;
 });
 
@@ -83,7 +83,7 @@ export const DynamicHandModel = forwardRef<
     }
     updateMotionHand(motionHand, frame, referenceSpace);
   });
-  useImperativeHandle(ref, () => motionHand.boneMap.get("wrist")!);
+  useImperativeHandle(ref, () => motionHand.boneMap.get("wrist")!, []);
   return <primitive object={motionHand}>{children}</primitive>;
 });
 

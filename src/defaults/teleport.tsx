@@ -106,7 +106,7 @@ export function TeleportHand({
   filterIntersections?: (intersections: any[]) => any[]; //TODO
 }) {
   const groupRef = useRef<Group>(null);
-  const handRef = useRef<OculusHandModel>(null);
+  const handRef = useRef<Group>(null);
   const currentIntersectionRef = useRef<XIntersection>();
   const teleportRef = useRef(onTeleport);
   teleportRef.current = onTeleport;
@@ -135,11 +135,10 @@ export function TeleportHand({
   );
   useFrame((_, delta) => {
     const group = groupRef.current;
-    const motionHand = handRef.current;
-    if (group == null || motionHand == null || !isMotionHand(motionHand)) {
+    const bone = handRef.current;
+    if (group == null || bone == null) {
       return;
     }
-    const bone = getBoneObject(motionHand, "wrist");
     group.position.copy(bone.position);
     eulerHelper.setFromQuaternion(bone.quaternion);
     eulerHelper.z = 0;
@@ -153,7 +152,7 @@ export function TeleportHand({
     <>
       <Suspense fallback={null}>
         <DynamicHandModel ref={handRef} hand={hand} handedness={inputSource.handedness}>
-          {children != null && <HandBoneGroup joint="wrist">{children}</HandBoneGroup>}
+          {children}
         </DynamicHandModel>
       </Suspense>
       <group ref={groupRef}>

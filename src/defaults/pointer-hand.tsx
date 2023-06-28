@@ -1,13 +1,15 @@
 import { XIntersection } from "@coconut-xr/xinteraction";
 import { InputDeviceFunctions, XStraightPointer } from "@coconut-xr/xinteraction/react";
-import React, { ReactNode, useRef } from "react";
+import React, { ReactNode, Suspense, useRef } from "react";
 import { DynamicHandModel, HandBoneGroup } from "../react/hand.js";
 import { useInputSourceEvent } from "../react/listeners.js";
 import { SpaceGroup } from "../react/space.js";
-import { BoxGeometry } from "three";
+import { BoxGeometry, Vector3 } from "three";
 
 const geometry = new BoxGeometry();
 geometry.translate(0, 0, -0.5);
+
+const negZAxis = new Vector3(0, 0, -1);
 
 export function PointerHand({
   hand,
@@ -29,13 +31,18 @@ export function PointerHand({
 
   return (
     <>
-      <DynamicHandModel hand={hand} handedness={inputSource.handedness}>
-        {children != null && <HandBoneGroup joint="wrist">{children}</HandBoneGroup>}
-      </DynamicHandModel>
+      <Suspense>
+        <DynamicHandModel hand={hand} handedness={inputSource.handedness}>
+          {children != null && <HandBoneGroup joint="wrist">{children}</HandBoneGroup>}
+        </DynamicHandModel>
+      </Suspense>
       <SpaceGroup space={inputSource.targetRaySpace}>
-        <group rotation-y={Math.PI}>
-          <XStraightPointer filterIntersections={filterIntersections} id={id} ref={pointerRef} />
-        </group>
+        <XStraightPointer
+          direction={negZAxis}
+          filterIntersections={filterIntersections}
+          id={id}
+          ref={pointerRef}
+        />
         <mesh scale={[0.01, 0.01, 1]} geometry={geometry}>
           <meshBasicMaterial color={0xffffff} />
         </mesh>

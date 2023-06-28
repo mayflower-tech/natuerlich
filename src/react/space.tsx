@@ -1,26 +1,24 @@
 /* eslint-disable react/display-name */
 import { RootState, useFrame } from "@react-three/fiber";
-import React, { forwardRef, ReactNode, useRef } from "react";
+import React, { forwardRef, ReactNode, RefObject, useRef } from "react";
 import { useImperativeHandle } from "react";
 import { Group, Object3D } from "three";
 
-export const SpaceGroup = forwardRef<
-  Group,
-  {
-    space: XRSpace;
-    children?: ReactNode;
-    onFrame?: (
-      rootState: RootState,
-      delta: number,
-      frame: XRFrame | undefined,
-      object: Object3D,
-    ) => void;
-  }
->(({ space, children, onFrame }, ref) => {
-  const internalRef = useRef<Group>(null);
-  useImperativeHandle(ref, () => internalRef.current!);
+/**
+ * requires matrixAutoUpdate=false on the ref target
+ */
+export function useApplySpace(
+  ref: RefObject<Object3D>,
+  space: XRSpace,
+  onFrame?: (
+    rootState: RootState,
+    delta: number,
+    frame: XRFrame | undefined,
+    object: Object3D,
+  ) => void,
+) {
   useFrame((rootState, delta, frame: XRFrame | undefined) => {
-    const group = internalRef.current;
+    const group = ref.current;
     if (group == null) {
       return;
     }
@@ -41,6 +39,24 @@ export const SpaceGroup = forwardRef<
       onFrame(rootState, delta, frame, group);
     }
   });
+}
+
+export const SpaceGroup = forwardRef<
+  Group,
+  {
+    space: XRSpace;
+    children?: ReactNode;
+    onFrame?: (
+      rootState: RootState,
+      delta: number,
+      frame: XRFrame | undefined,
+      object: Object3D,
+    ) => void;
+  }
+>(({ space, children, onFrame }, ref) => {
+  const internalRef = useRef<Group>(null);
+  useImperativeHandle(ref, () => internalRef.current!, []);
+  useApplySpace(internalRef, space, onFrame);
   return (
     <group matrixAutoUpdate={false} ref={internalRef}>
       {children}
