@@ -1,6 +1,6 @@
 {
   "name": "@coconut-xr/natuerlich",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -51,7 +51,7 @@
     "zustand": "*"
   },
   "devDependencies": {
-    "@coconut-xr/koestlich": "^0.0.15",
+    "@coconut-xr/koestlich": "^0.0.16",
     "@react-three/fiber": "^8.11.0",
     "@types/react": "^18.0.27",
     "@types/three": "^0.152.1",

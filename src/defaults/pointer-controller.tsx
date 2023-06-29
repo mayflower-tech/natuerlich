@@ -10,7 +10,7 @@ import { BoxGeometry, Vector3 } from "three";
 const geometry = new BoxGeometry();
 geometry.translate(0, 0, -0.5);
 
-const negZAxis = new Vector3(0,0,-1)
+const negZAxis = new Vector3(0, 0, -1);
 
 export function PointerController({
   inputSource,
@@ -60,13 +60,13 @@ export function PointerController({
         </SpaceGroup>
       )}
       <SpaceGroup space={inputSource.targetRaySpace}>
-          <XStraightPointer
-            onIntersections={onIntersections}
-            id={id}
-            direction={negZAxis}
-            ref={pointerRef}
-            filterIntersections={filterIntersections}
-          />
+        <XStraightPointer
+          onIntersections={onIntersections}
+          id={id}
+          direction={negZAxis}
+          ref={pointerRef}
+          filterIntersections={filterIntersections}
+        />
 
         <mesh scale={[0.01, 0.01, 1]} geometry={geometry}>
           <meshBasicMaterial color={0xffffff} />

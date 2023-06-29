@@ -7,7 +7,6 @@
   },
   "type": "module",
   "dependencies": {
-    "@coconut-xr/koestlich": "^0.0.15",
     "@coconut-xr/kruemel": "^0.0.6",
     "@coconut-xr/natuerlich": "file:..",
     "@react-three/drei": "^9.56.18",

@@ -4,6 +4,8 @@ import React, { useEffect, useImperativeHandle, useRef } from "react";
 import { forwardRef } from "react";
 import { PerspectiveCamera } from "three";
 
+const manualCameraProp = { manual: true } as any;
+
 export const NonImmersiveCamera = forwardRef<PerspectiveCamera, PerspectiveCameraProps>(
   (props, ref) => {
     const store = useStore();
@@ -43,6 +45,6 @@ export const NonImmersiveCamera = forwardRef<PerspectiveCamera, PerspectiveCamer
         store.setState({ camera: prevCamera });
       };
     }, [store]);
-    return <perspectiveCamera ref={internalRef} {...props} />;
+    return <perspectiveCamera {...manualCameraProp} ref={internalRef} {...props} />;
   },
 );

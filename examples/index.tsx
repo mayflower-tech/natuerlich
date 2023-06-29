@@ -161,9 +161,15 @@ export default function Index() {
           <CylinderLayerTexture />
         </Suspense>
         <TrackedPlanes />
-        <KoestlichQuadLayer pixelWidth={1024} pixelHeight={1024} position={[-2, 1, 0]}>
+        <KoestlichQuadLayer
+          contentScale={300}
+          pixelWidth={1024}
+          pixelHeight={1024}
+          position={[-2, 1, 0]}
+        >
           <Koestlich />
           <DoubleGrabCube />
+          <Background color="green" />
         </KoestlichQuadLayer>
         <QuadLayerPortal pixelWidth={1024} pixelHeight={1024} position={[2, 1, 0]}>
           <Background color="green" />
@@ -426,20 +432,18 @@ function Controller({ inputSource }: { inputSource: XRInputSource }) {
   );
 }
 
-function Koestlich(props: GroupProps) {
+function Koestlich() {
   const [checked, setChecked] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
   const [sliderValue, setSliderValue] = useState(0.5);
 
   return (
     <Container
-      backgroundOpacity={0.5}
       backgroundColor="white"
       width="100%"
       height="100%"
       alignItems="flex-start"
       padding={0.2}
-      borderRadius={0.2}
       overflow="scroll"
       flexDirection="column"
     >

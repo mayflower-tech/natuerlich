@@ -5,6 +5,7 @@ import React, {
   useImperativeHandle,
   useRef,
   useEffect,
+  useLayoutEffect,
 } from "react";
 import { Object3D, OrthographicCamera } from "three";
 import { QuadLayer, QuadLayerPortal } from "../react/index.js";
@@ -22,19 +23,16 @@ export const KoestlichQuadLayer = forwardRef<
     contentScale?: number;
     precision?: number;
   }
->(({ children, far, near, contentScale = 1, ...props }, ref) => {
+>(({ children, far, near, precision = 0.1, contentScale = 1, ...props }, ref) => {
   return (
     <QuadLayerPortal {...props} ref={ref}>
-      <KoestlichFullscreenCamera
-        width={props.pixelWidth / contentScale}
-        height={props.pixelHeight / contentScale}
-        far={far}
-        near={near}
-      />
+      <KoestlichFullscreenCamera zoom={contentScale} far={far} near={near} />
       <RootContainer
+        anchorX="center"
+        anchorY="center"
         width={props.pixelWidth / contentScale}
         height={props.pixelHeight / contentScale}
-        precision={1 / contentScale}
+        precision={precision / contentScale}
       >
         {children}
       </RootContainer>
@@ -47,8 +45,8 @@ export const KoestlichQuadLayer = forwardRef<
  */
 export const KoestlichFullscreenCamera = forwardRef<
   OrthographicCamera,
-  { width: number; height: number; near?: number; far?: number }
->(({ width, height, near = 100, far = -1 }, ref) => {
+  { near?: number; far?: number; zoom?: number }
+>(({ near = 100, far = -1, zoom = 1 }, ref) => {
   const store = useStore();
   const internalRef = useRef<OrthographicCamera>(null);
   useImperativeHandle(ref, () => internalRef.current!, []);
@@ -70,18 +68,15 @@ export const KoestlichFullscreenCamera = forwardRef<
     };
   }, [store]);
 
-  const halfHeight = height / 2;
-  const halfWidth = width / 2;
+  useLayoutEffect(() => internalRef.current?.updateProjectionMatrix(), [zoom, near, far]);
 
+  //the camera automatically retrieves the width and height and positions itself and the view bounds accordingly
   return (
     <orthographicCamera
       position={[0, 0, near]}
+      zoom={zoom}
       near={0}
-      top={0}
-      bottom={-height}
-      left={0}
-      right={width}
-      far={far - near}
+      far={near - far}
       ref={internalRef}
     />
   );

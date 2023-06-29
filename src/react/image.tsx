@@ -2,6 +2,6 @@
 import { forwardRef } from "react";
 import { Group } from "three";
 
-export const TrackedImage = forwardRef<Group, {}>(() => {
+/*export const TrackedImage = forwardRef<Group, {}>(() => {
   return null;
-});
+});*/
