@@ -80,7 +80,7 @@ export function computeHandPoseDistance(
 }
 
 export function getHandPose(path: string, baseUrl: string): Float32Array | undefined {
-  const href = new URL(path, baseUrl).href;
+  const href = [path, baseUrl].join("/").replace(/(?<!https:)(?<!http:)\/(\/)+/g, "/");
   const pose = poseStorage.get(href);
   if (pose != null) {
     return pose;
