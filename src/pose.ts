@@ -36,30 +36,27 @@ const tempMat2 = new Matrix4();
 const tempQuat1 = new Quaternion();
 const tempQuat2 = new Quaternion();
 
+const mirrorMatrix = new Matrix4();
+mirrorMatrix.elements[0] = -1;
+
 export function computeHandPoseDistance(
-  handedness: XRHandedness,
   handMatrices: Float32Array,
   poseData: Float32Array,
+  mirror: boolean,
 ): number {
-  const isRight = Number(handedness === "right");
-  const poseHandDataSize = poseData[0];
+  const joinCountFromPose = poseData[0];
   const poseHandData = new Float32Array(
     poseData.buffer,
-    (1 + // poseHandDataSize offset
-      poseHandDataSize * 16 * isRight) * // offset for right hand
-      4,
-    poseHandDataSize * 16,
+    4, //1 float
+    joinCountFromPose * 16, //1 matrix for every joint
   );
   const poseWeightData = new Float32Array(
     poseData.buffer,
-    (1 + // poseHandDataSize offset
-      poseHandDataSize * 16 * 2 + // offset for after hand data
-      poseHandDataSize * isRight) * // offset for right hand
-      4,
-    poseHandDataSize,
+    4 + joinCountFromPose * 16, //directly after the pose hand data
+    joinCountFromPose, //1 weight as float for every joint
   );
 
-  const jointCount = Math.min(poseHandDataSize, handMatrices.length / 16);
+  const jointCount = Math.min(joinCountFromPose, handMatrices.length / 16);
   let dist = 0;
   let totalWeight = 0.0001;
   for (let i = 0; i < jointCount; i++) {
@@ -69,14 +66,33 @@ export function computeHandPoseDistance(
 
     // Algo based on join rotation apply quaternion to a vector and
     // compare positions of vectors should work a bit better
-    const o = i * 16;
-    tempMat1.fromArray(poseHandData, o);
-    tempMat2.fromArray(handMatrices, o);
+    const offset = i * 16;
+    tempMat1.fromArray(poseHandData, offset);
+    if (mirror) {
+      tempMat1.multiply(mirrorMatrix);
+    }
+    tempMat2.fromArray(handMatrices, offset);
     tempQuat1.setFromRotationMatrix(tempMat1);
     tempQuat2.setFromRotationMatrix(tempMat2);
     dist += tempQuat1.angleTo(tempQuat2) * poseWeight;
   }
   return dist / totalWeight;
+}
+
+export function storeHandData(handMatrices: Float32Array, mirror: boolean): Float32Array {
+  const jointCount = handMatrices.length / 16;
+  const result = new Float32Array(1 + jointCount * 16 + jointCount);
+  result[0] = jointCount;
+  for (let i = 0; i < jointCount; i++) {
+    tempMat1.fromArray(handMatrices, i * 16);
+    if (mirror) {
+      tempMat1.multiply(mirrorMatrix);
+    }
+    tempMat1.toArray(result, 1 + i * 16);
+  }
+  //weights are all 1
+  result.fill(1, 1 + jointCount * 16);
+  return result;
 }
 
 export function getHandPose(path: string, baseUrl: string): Float32Array | undefined {

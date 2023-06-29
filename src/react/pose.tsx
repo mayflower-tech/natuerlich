@@ -1,6 +1,11 @@
 import { useFrame } from "@react-three/fiber";
 import { useCallback, useMemo, useRef } from "react";
-import { computeHandPoseDistance, getHandPose, updateHandMatrices } from "../index.js";
+import {
+  computeHandPoseDistance,
+  getHandPose,
+  storeHandData as toPoseData,
+  updateHandMatrices,
+} from "../index.js";
 
 /**
  * @returns a function to download the current hand pose (left and right)
@@ -26,16 +31,17 @@ export function useHandPoses(
     let bestPoseName: string | undefined;
     let bestPoseDistance: number | undefined;
     let bestPoseOffset: number | undefined;
+
     for (const [name, path] of Object.entries(poseUrlMap)) {
       const pose = getHandPose(path, baseUrl);
       if (pose == null) {
         continue;
       }
       if (dumbRef.current) {
-        downloadPose(pose);
+        downloadPoseData(toPoseData(handMatrices, handedness === "left"));
         dumbRef.current = false;
       }
-      const distance = computeHandPoseDistance(handedness, handMatrices, pose);
+      const distance = computeHandPoseDistance(handMatrices, pose, handedness === "left");
       if (bestPoseDistance == null || distance < bestPoseDistance) {
         bestPoseOffset = bestPoseDistance == null ? Infinity : bestPoseDistance - distance;
         bestPoseDistance = distance;
@@ -54,7 +60,7 @@ export function useHandPoses(
   return useCallback(() => (dumbRef.current = true), []);
 }
 
-function downloadPose(pose: Float32Array) {
+function downloadPoseData(pose: Float32Array) {
   const a = window.document.createElement("a");
 
   a.href = window.URL.createObjectURL(
