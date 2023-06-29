@@ -33,7 +33,7 @@ export function useHandPoses(
       }
       if (dumbRef.current) {
         downloadPose(pose);
-        dumbRef.current = true;
+        dumbRef.current = false;
       }
       const distance = computeHandPoseDistance(handedness, handMatrices, pose);
       if (bestPoseDistance == null || distance < bestPoseDistance) {
