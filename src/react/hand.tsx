@@ -77,11 +77,17 @@ export const DynamicHandModel = forwardRef<
   const clonedScene = useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const motionHand = useMemo(() => createMotionHand(hand, clonedScene), [clonedScene, hand]);
   useFrame((state, delta, frame) => {
-    const referenceSpace = state.gl.xr.getReferenceSpace();
-    if (frame == null || referenceSpace == null) {
+    if (frame == null || frame.session.visibilityState != "visible") {
+      motionHand.visible = false;
       return;
     }
-    updateMotionHand(motionHand, frame, referenceSpace);
+    const referenceSpace = state.gl.xr.getReferenceSpace();
+    if (referenceSpace == null) {
+      motionHand.visible = false;
+      return;
+    }
+    const poseValid = updateMotionHand(motionHand, frame, referenceSpace);
+    motionHand.visible = poseValid;
   });
   useImperativeHandle(ref, () => motionHand.boneMap.get("wrist")!, []);
   return <primitive object={motionHand}>{children}</primitive>;

@@ -69,21 +69,33 @@ export function isMotionHand(object: Object3D): object is MotionHand {
 }
 
 export function updateMotionHand(
-  { boneMap, hand }: MotionHand,
+  object: MotionHand,
   frame: XRFrame,
   referenceSpace: XRReferenceSpace,
-) {
-  for (const inputJoint of hand.values()) {
-    const jointPose = frame.getJointPose?.(inputJoint, referenceSpace);
-    const bone = boneMap.get(inputJoint.jointName);
+): boolean {
+  let poseValid = true;
+  for (const inputJoint of object.hand.values()) {
+    const bone = object.boneMap.get(inputJoint.jointName);
 
-    if (jointPose == null || bone == null) {
+    if (bone == null) {
       continue;
     }
 
-    const { position, orientation } = jointPose.transform;
+    const jointPose = frame.getJointPose?.(inputJoint, referenceSpace);
 
-    bone.position.set(position.x, position.y, position.z);
-    bone.quaternion.set(orientation.x, orientation.y, orientation.z, orientation.w);
+    if (jointPose != null) {
+      const { position, orientation } = jointPose.transform;
+
+      bone.position.set(position.x, position.y, position.z);
+      bone.quaternion.set(orientation.x, orientation.y, orientation.z, orientation.w);
+      continue;
+    }
+
+    if (inputJoint.jointName === "wrist") {
+      poseValid = false;
+      break; //wrist is untracked => everything else is unuseable
+    }
   }
+
+  return poseValid;
 }

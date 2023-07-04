@@ -21,12 +21,19 @@ export function useHandPoses(
   const prevPoseName = useRef<string | undefined>();
   const dumbRef = useRef<boolean>(false);
   useFrame((state, _delta, frame: XRFrame | undefined) => {
+    if (frame == null || frame.session.visibilityState != "visible") {
+      return;
+    }
     const referenceSpace = state.gl.xr.getReferenceSpace();
-    if (frame == null || referenceSpace == null) {
+    if (referenceSpace == null) {
       return;
     }
 
-    updateHandMatrices(frame, referenceSpace, hand, handMatrices);
+    const validPose = updateHandMatrices(frame, referenceSpace, hand, handMatrices);
+
+    if (!validPose) {
+      return;
+    }
 
     if (dumbRef.current) {
       downloadPoseData(toPoseData(handMatrices, handedness === "left"));

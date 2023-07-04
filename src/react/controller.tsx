@@ -3,7 +3,7 @@ import { useLoader, useFrame } from "@react-three/fiber";
 import React, { useMemo, forwardRef, useEffect } from "react";
 import { suspend } from "suspend-react";
 import { Group } from "three";
-import { GLTFLoader } from "three-stdlib/index.js";
+import { GLTF, GLTFLoader } from "three-stdlib/index.js";
 import {
   XRInputSourceData,
   fetchControllerProfile,
@@ -30,13 +30,19 @@ export const DynamicControllerModel = forwardRef<
     defaultProfileId,
     createMotionControllerSymbol,
   ]);
-  const { scene } = useLoader(GLTFLoader, motionController.assetUrl);
+  const { scene } = useLoader(GLTFLoader, motionController.assetUrl) as GLTF;
   const clonedScene = useMemo(() => scene.clone(true), [scene]);
   useEffect(
     () => bindMotionControllerToObject(motionController, clonedScene),
     [motionController, clonedScene],
   );
-  useFrame(() => updateMotionController(motionController));
+  useFrame((_state, _delta, frame: XRFrame | undefined) => {
+    if (frame == null || frame.session.visibilityState === "visible") {
+      clonedScene.visible = false;
+      return;
+    }
+    updateMotionController(motionController);
+  });
   // eslint-disable-next-line react/no-unknown-property
   return <primitive ref={ref} object={clonedScene} />;
 });

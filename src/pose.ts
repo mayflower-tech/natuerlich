@@ -13,8 +13,12 @@ export function updateHandMatrices(
   referenceSpace: XRSpace,
   hand: XRHand,
   handMatrices: Float32Array,
-): void {
-  (frame as any).fillPoses(hand.values(), referenceSpace, handMatrices);
+): boolean {
+  const validPose = (frame as any).fillPoses(hand.values(), referenceSpace, handMatrices);
+
+  if (!validPose) {
+    return false;
+  }
 
   //calculate bone poses in relation to the wrist
 
@@ -29,6 +33,8 @@ export function updateHandMatrices(
     matrixHelper.premultiply(invertedWirstHelper);
     matrixHelper.toArray(handMatrices, offset);
   }
+
+  return true;
 }
 
 const tempMat1 = new Matrix4();
