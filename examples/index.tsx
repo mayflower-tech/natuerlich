@@ -1,19 +1,8 @@
 /* eslint-disable react/no-unknown-property */
-import { Canvas, GroupProps, createPortal, useLoader, useStore } from "@react-three/fiber";
-import {
-  ComponentProps,
-  MutableRefObject,
-  ReactNode,
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useLoader } from "@react-three/fiber";
+import { MutableRefObject, Suspense, useCallback, useRef, useState } from "react";
 import {
   SpaceGroup,
-  XR,
   useEnterXR,
   useInputSourceEvent,
   useInputSources,
@@ -29,35 +18,16 @@ import {
   NonImmersiveCamera,
   useTrackedPlanes,
   TrackedPlane,
-  useInitRoomCapture,
   IncludeWhenInSessionMode,
   useHandPoses,
   Background,
-  CylinderLayerPortal,
   QuadLayerPortal,
 } from "@coconut-xr/natuerlich/react";
-import {
-  BoxGeometry,
-  BufferGeometry,
-  DoubleSide,
-  Euler,
-  Matrix4,
-  PerspectiveCamera,
-  PlaneGeometry,
-  Quaternion,
-  Scene,
-  TextureLoader,
-  Vector3,
-  WebGLRenderTarget,
-  WebGLRenderer,
-} from "three";
+import { BoxGeometry, PlaneGeometry, TextureLoader, Vector3 } from "three";
 import {
   InputDeviceFunctions,
   XSphereCollider,
   XStraightPointer,
-  XWebPointers,
-  noEvents,
-  useMeshForwardEvents,
 } from "@coconut-xr/xinteraction/react";
 import { XIntersection } from "@coconut-xr/xinteraction";
 import { Container, RootContainer, Text } from "@coconut-xr/koestlich";
@@ -93,17 +63,12 @@ import {
   Trash,
 } from "@coconut-xr/kruemel/icons/outline";
 import { AnchorObject } from "./anchor-object.js";
-import { Box, Plane } from "@react-three/drei";
+import { Box } from "@react-three/drei";
 import {
-  TeleportTarget,
-  PointerHand,
-  PointerController,
-  TeleportController,
   KoestlichQuadLayer,
   DoubleGrab,
-  TouchHand,
-  GrabHand,
   GrabController,
+  XRCanvas,
 } from "@coconut-xr/natuerlich/defaults";
 import { getInputSourceId, getPlaneId } from "@coconut-xr/natuerlich";
 
@@ -140,23 +105,22 @@ export default function Index() {
         <button onClick={() => enterVR()}>VR</button>
         <button onClick={() => ref.current?.()}>Capture</button>
       </div>
-      <Canvas
+      <XRCanvas
         dpr={window.devicePixelRatio}
         shadows
         gl={{ localClippingEnabled: true }}
         style={{ width: "100vw", height: "100svh", touchAction: "none" }}
-        events={noEvents}
+        frameBufferScaling={frameBufferScaling}
+        frameRate={frameRate}
       >
         <ambientLight intensity={0.5} />
         <pointLight position={[0, 1, 0]} intensity={10} />
-        <XR frameBufferScaling={frameBufferScaling} frameRate={frameRate} />
-        <XWebPointers />
         <ImmersiveSessionOrigin position={position}>
           <InputSources functionRef={ref} onTeleport={setPosition} />
           <TrackedPlanes />
+          <AnchorObject />
         </ImmersiveSessionOrigin>
         <NonImmersiveCamera position={[0, 1, 5]} />
-        <AnchorObject />
         <Suspense>
           <NormalTexture />
         </Suspense>
@@ -192,7 +156,7 @@ export default function Index() {
           <Background color="green" />
         </QuadLayerPortal>
         {/*<DoubleGrabCube />*/}
-      </Canvas>
+      </XRCanvas>
     </>
   );
 }

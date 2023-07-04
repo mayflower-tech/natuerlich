@@ -1,6 +1,6 @@
-import { useStore, useThree } from "@react-three/fiber";
+import { useFrame, useStore, useThree } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
-import { useXR } from "./state.js";
+import { XRImageTrackingResult, useXR } from "./state.js";
 import { shallow } from "zustand/shallow";
 
 export * from "./use-enter-xr.js";
@@ -44,6 +44,13 @@ export function useHeighestAvailableFrameRate(): number | undefined {
   }, [framerates]);
 }
 
+export type XRProps = {
+  foveation?: number;
+  frameRate?: number;
+  referenceSpace?: XRReferenceSpaceType;
+  frameBufferScaling?: number;
+};
+
 /**
  * must be positioned somewhere inside the canvas
  */
@@ -52,12 +59,7 @@ export function XR({
   frameRate,
   referenceSpace = "local-floor",
   frameBufferScaling,
-}: {
-  foveation?: number;
-  frameRate?: number;
-  referenceSpace?: XRReferenceSpaceType;
-  frameBufferScaling?: number;
-}) {
+}: XRProps) {
   const xrManager = useThree((state) => state.gl.xr);
   const store = useStore();
 
@@ -89,6 +91,21 @@ export function XR({
   useEffect(() => {
     xrManager.setReferenceSpaceType(referenceSpace);
   }, [xrManager, referenceSpace]);
+
+  useFrame((_state, _delta, frame: XRFrame | undefined) => {
+    if (frame == null || !("getImageTrackingResults" in frame)) {
+      return;
+    }
+    const trackedImages = useXR.getState().trackedImages;
+    if (trackedImages == null) {
+      return;
+    }
+    trackedImages.clear();
+    const results = (frame.getImageTrackingResults as () => ReadonlyArray<XRImageTrackingResult>)();
+    for (const result of results) {
+      trackedImages.set(result.index, result);
+    }
+  });
 
   return null;
 }

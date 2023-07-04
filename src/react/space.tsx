@@ -22,23 +22,32 @@ export function useApplySpace(
     if (group == null) {
       return;
     }
-    const referenceSpace = rootState.gl.xr.getReferenceSpace();
-    if (referenceSpace == null || frame == null) {
-      group.visible = false;
-      return;
-    }
-    const pose = frame.getPose(space, referenceSpace);
-    if (pose == null) {
-      group.visible = false;
-      return;
-    }
-    group.visible = true;
-    group.matrix.fromArray(pose.transform.matrix);
+    applySpace(rootState, frame, group, space);
     if (onFrame != null) {
       group.updateMatrixWorld();
       onFrame(rootState, delta, frame, group);
     }
   });
+}
+
+export function applySpace(
+  state: RootState,
+  frame: XRFrame | undefined,
+  object: Object3D,
+  space: XRSpace,
+): void {
+  const referenceSpace = state.gl.xr.getReferenceSpace();
+  if (referenceSpace == null || frame == null) {
+    object.visible = false;
+    return;
+  }
+  const pose = frame.getPose(space, referenceSpace);
+  if (pose == null) {
+    object.visible = false;
+    return;
+  }
+  object.visible = true;
+  object.matrix.fromArray(pose.transform.matrix);
 }
 
 export const SpaceGroup = forwardRef<

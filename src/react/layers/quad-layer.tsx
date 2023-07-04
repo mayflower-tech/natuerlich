@@ -160,7 +160,7 @@ export const QuadLayerPortal = forwardRef<
 
   const eventProps = useMeshForwardEventsFromStore(store.getState, dragDistance);
 
-  useImperativeHandle(ref, () => eventProps.ref.current!);
+  useImperativeHandle(ref, () => eventProps.ref.current!, []);
 
   return (
     <>

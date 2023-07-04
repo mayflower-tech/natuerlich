@@ -113,6 +113,7 @@ export function updateCursorDistanceOpacity(
   material.opacity = transition * cursorOpacity;
 }
 
+export * from "./canvas.js";
 export * from "./grab-controller.js";
 export * from "./grab-hand.js";
 export * from "./pointer-controller.js";

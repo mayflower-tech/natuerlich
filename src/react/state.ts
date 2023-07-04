@@ -4,7 +4,25 @@ import { StoreApi, create } from "zustand";
 import { combine } from "zustand/middleware";
 import { getInputSourceId } from "../index.js";
 
+export type XRImageTrackingScore = "untrackable" | "trackable";
+
+export type XRImageTrackingState = "tracked" | "emulated";
+
+export type XRImageTrackingResult = {
+  readonly imageSpace: XRSpace;
+  readonly index: number;
+  readonly trackingState: XRImageTrackingState;
+  readonly measuredWidthInMeters: number;
+};
+
+export type XRTrackedImageInit = {
+  image: ImageBitmap;
+  widthInMeters: number;
+};
+
 export type XRInputSourceMap = Map<number, XRInputSource>;
+
+export type TrackedImagesMap = Map<number, XRImageTrackingResult>;
 
 export type ExtendedXRSessionMode = XRState["mode"];
 
@@ -17,6 +35,8 @@ export type XRState = (
       //only for internal reference
       initialCamera: Camera;
       layers: Array<{ index: number; layer: XRLayer }>;
+      trackedImages: TrackedImagesMap;
+      requestedTrackedImages?: ReadonlyArray<XRTrackedImageInit>;
     }
   | {
       mode: "none";
@@ -24,6 +44,8 @@ export type XRState = (
       inputSources?: undefined;
       initialCamera?: undefined;
       layers?: undefined;
+      trackedImages?: undefined;
+      requestedTrackedImages?: undefined;
     }
 ) & { store?: StoreApi<RootState> };
 
@@ -87,6 +109,8 @@ export const useXR = create(
         inputSources: undefined,
         initialCamera: undefined,
         layers: undefined,
+        requestedTrackedImages: undefined,
+        trackedImages: undefined,
       });
       const { camera } = store.getState();
       //(gl.xr as any).setUserCamera(undefined);
@@ -95,7 +119,25 @@ export const useXR = create(
         store.setState({ camera: initialCamera });
       }
     },
-    async setSession(session: XRSession, mode: XRSessionMode) {
+    async setSession(
+      session: XRSession,
+      mode: XRSessionMode,
+      requestedTrackedImages?: ReadonlyArray<XRTrackedImageInit>,
+    ) {
+      if ("getTrackedImageScores" in session) {
+        const scores = await (
+          session.getTrackedImageScores as () => Promise<ReadonlyArray<XRImageTrackingScore>>
+        )();
+        for (let index = 0; index < scores.length; ++index) {
+          if (scores[index] == "untrackable") {
+            console.error(
+              `Provided image at index "${index}" is untrackable.`,
+              requestedTrackedImages?.[index],
+            );
+          }
+        }
+      }
+
       //clear old event listeners
       const oldSession = get().session;
       if (oldSession != null) {
@@ -132,6 +174,8 @@ export const useXR = create(
         session,
         inputSources,
         initialCamera: camera,
+        trackedImages: new Map(),
+        requestedTrackedImages,
         layers: [{ index: 0, layer: gl.xr.getBaseLayer() }],
       });
       store.setState({ camera: gl.xr.getCamera() });
