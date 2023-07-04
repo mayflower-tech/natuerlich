@@ -3,8 +3,6 @@ import { MutableRefObject, RefObject } from "react";
 import {
   Color,
   ColorRepresentation,
-  Material,
-  Matrix3,
   MeshBasicMaterial,
   Object3D,
   Quaternion,
@@ -41,7 +39,7 @@ export function updateCursorTransformation(
   cursor.visible = true;
   const intersection = intersections[0];
 
-  cursor.position.copy(intersection.point);
+  cursor.position.copy(intersection.pointOnFace);
   if (intersection.face != null) {
     quaternionHelper.setFromUnitVectors(ZAXIS, intersection.face.normal);
     intersection.object.getWorldQuaternion(cursor.quaternion);

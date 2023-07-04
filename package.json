@@ -1,6 +1,6 @@
 {
   "name": "@coconut-xr/natuerlich",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
@@ -39,7 +39,7 @@
     "fix:eslint": "eslint src --fix"
   },
   "dependencies": {
-    "@coconut-xr/xinteraction": "^0.0.11",
+    "@coconut-xr/xinteraction": "^0.1.2",
     "@coconut-xr/xmaterials": "^0.0.3",
     "@webxr-input-profiles/motion-controllers": "^1.0.0",
     "meshline": "3.1.6",

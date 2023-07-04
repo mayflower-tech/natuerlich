@@ -69,6 +69,9 @@ import {
   DoubleGrab,
   GrabController,
   XRCanvas,
+  TouchHand,
+  GrabHand,
+  PointerHand,
 } from "@coconut-xr/natuerlich/defaults";
 import { getInputSourceId, getPlaneId } from "@coconut-xr/natuerlich";
 
@@ -230,11 +233,12 @@ function InputSources({
             inputSource={inputSource}
             key={getInputSourceId(inputSource)}
           />*/
-          <Hand
+          <PointerHand
             key={getInputSourceId(inputSource)}
             inputSource={inputSource}
             hand={inputSource.hand}
-            functionRef={functionRef}
+            cursorColor="black"
+            id={inputSource.handedness === "left" ? -3 : -4}
           />
         ) : (
           /*<PointerHand
