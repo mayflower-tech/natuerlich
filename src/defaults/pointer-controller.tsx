@@ -1,14 +1,20 @@
-import { ReactNode, Suspense, useCallback, useRef } from "react";
+import { ReactNode, Suspense, useMemo, useRef } from "react";
 import { InputDeviceFunctions, XStraightPointer } from "@coconut-xr/xinteraction/react";
 import { useInputSourceEvent } from "../react/listeners.js";
 import { XIntersection } from "@coconut-xr/xinteraction";
 import React from "react";
 import { SpaceGroup } from "../react/space.js";
 import { DynamicControllerModel } from "../react/controller.js";
-import { BoxGeometry, Vector3 } from "three";
-
-const geometry = new BoxGeometry();
-geometry.translate(0, 0, -0.5);
+import { ColorRepresentation, Mesh, Vector3 } from "three";
+import {
+  CursorBasicMaterial,
+  RayBasicMaterial,
+  triggerVibration,
+  updateColor as updatePointerColor,
+  updateCursorTransformation,
+  updateRayTransformation,
+} from "./index.js";
+import { createPortal, useThree } from "@react-three/fiber";
 
 const negZAxis = new Vector3(0, 0, -1);
 
@@ -17,37 +23,75 @@ export function PointerController({
   children,
   filterIntersections,
   id,
+  cursorColor = "white",
+  cursorPressColor = "blue",
+  cursorOpacity = 1,
+  cursorSize = 0.2,
+  cursorVisible = true,
+  rayColor = "white",
+  rayPressColor = "blue",
+  rayMaxLength = 1,
+  rayVisibile = true,
+  raySize = 0.01,
 }: {
   inputSource: XRInputSource;
   children?: ReactNode;
   id: number;
   filterIntersections?: (intersections: XIntersection[]) => XIntersection[];
+  cursorColor?: ColorRepresentation;
+  cursorPressColor?: ColorRepresentation;
+  cursorOpacity?: number;
+  cursorSize?: number;
+  cursorVisible?: boolean;
+  rayColor?: ColorRepresentation;
+  rayPressColor?: ColorRepresentation;
+  rayMaxLength?: number;
+  rayVisibile?: boolean;
+  raySize?: number;
 }) {
   const pointerRef = useRef<InputDeviceFunctions>(null);
+  const pressedRef = useRef(false);
+  const cursorRef = useRef<Mesh>(null);
+  const rayRef = useRef<Mesh>(null);
+  const prevIntersected = useRef(false);
 
-  const refPrevIntersected = useRef(false);
-  useInputSourceEvent("selectstart", inputSource, (e) => pointerRef.current?.press(0, e), []);
-  useInputSourceEvent("selectend", inputSource, (e) => pointerRef.current?.release(0, e), []);
-
-  const onIntersections = useCallback(
-    (intersections: ReadonlyArray<XIntersection>) => {
-      const prevIntersected = refPrevIntersected.current;
-      const currentIntersected = intersections.length > 0;
-      refPrevIntersected.current = currentIntersected;
-      if (!(!prevIntersected && currentIntersected)) {
-        return;
-      }
-      if (inputSource.gamepad == null) {
-        return;
-      }
-      const [hapticActuator] = inputSource.gamepad.hapticActuators;
-      if (hapticActuator == null) {
-        return;
-      }
-      (hapticActuator as any).pulse(1, 100);
-    },
-    [inputSource],
+  const cursorMaterial = useMemo(
+    () => new CursorBasicMaterial({ transparent: true, toneMapped: false }),
+    [],
   );
+  cursorMaterial.opacity = cursorOpacity;
+  updatePointerColor(pressedRef.current, cursorMaterial, cursorColor, cursorPressColor);
+
+  const rayMaterial = useMemo(
+    () => new RayBasicMaterial({ transparent: true, toneMapped: false }),
+    [],
+  );
+  updatePointerColor(pressedRef.current, rayMaterial, rayColor, rayPressColor);
+
+  useInputSourceEvent(
+    "selectstart",
+    inputSource,
+    (e) => {
+      pressedRef.current = true;
+      updatePointerColor(pressedRef.current, cursorMaterial, cursorColor, cursorPressColor);
+      updatePointerColor(pressedRef.current, rayMaterial, rayColor, rayPressColor);
+      pointerRef.current?.press(0, e);
+    },
+    [],
+  );
+  useInputSourceEvent(
+    "selectend",
+    inputSource,
+    (e) => {
+      pressedRef.current = false;
+      updatePointerColor(pressedRef.current, cursorMaterial, cursorColor, cursorPressColor);
+      updatePointerColor(pressedRef.current, rayMaterial, rayColor, rayPressColor);
+      pointerRef.current?.release(0, e);
+    },
+    [],
+  );
+
+  const scene = useThree(({ scene }) => scene);
 
   return (
     <>
@@ -61,17 +105,32 @@ export function PointerController({
       )}
       <SpaceGroup space={inputSource.targetRaySpace}>
         <XStraightPointer
-          onIntersections={onIntersections}
+          onIntersections={(intersections) => {
+            updateCursorTransformation(intersections, cursorRef);
+            updateRayTransformation(intersections, rayMaxLength, rayRef);
+            triggerVibration(intersections, inputSource, prevIntersected);
+          }}
           id={id}
           direction={negZAxis}
           ref={pointerRef}
           filterIntersections={filterIntersections}
         />
-
-        <mesh scale={[0.01, 0.01, 1]} geometry={geometry}>
-          <meshBasicMaterial color={0xffffff} />
+        <mesh
+          visible={rayVisibile}
+          scale-x={raySize}
+          scale-y={raySize}
+          material={rayMaterial}
+          ref={rayRef}
+        >
+          <boxGeometry />
         </mesh>
       </SpaceGroup>
+      {createPortal(
+        <mesh visible={cursorVisible} scale={cursorSize} ref={cursorRef} material={cursorMaterial}>
+          <planeGeometry />
+        </mesh>,
+        scene,
+      )}
     </>
   );
 }

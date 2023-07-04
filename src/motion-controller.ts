@@ -65,7 +65,7 @@ export function bindMotionControllerToObject(
       if (component.touchPointNode != null) {
         // Attach a touch dot to the touchpad.
         const sphereGeometry = new SphereGeometry(0.001);
-        const material = new MeshBasicMaterial({ color: 0x0000ff });
+        const material = new MeshBasicMaterial({ color: 0x0000ff, toneMapped: false });
         const sphere = new Mesh(sphereGeometry, material);
         component.touchPointNode.add(sphere);
       } else {

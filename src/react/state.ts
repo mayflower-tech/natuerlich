@@ -1,5 +1,5 @@
 import { Camera, RootState } from "@react-three/fiber";
-import { Object3D, PerspectiveCamera } from "three";
+import { Object3D } from "three";
 import { StoreApi, create } from "zustand";
 import { combine } from "zustand/middleware";
 import { getInputSourceId } from "../index.js";
@@ -13,7 +13,6 @@ export type XRState = (
       mode: XRSessionMode;
       session: XRSession;
       inputSources: XRInputSourceMap;
-      camera: Camera;
 
       //only for internal reference
       initialCamera: Camera;
@@ -23,7 +22,6 @@ export type XRState = (
       mode: "none";
       session?: undefined;
       inputSources?: undefined;
-      camera?: undefined;
       initialCamera?: undefined;
       layers?: undefined;
     }
@@ -79,22 +77,21 @@ export const useXR = create(
       } as Partial<XRState>);
     },
     onXREnd(e: XRSessionEvent) {
-      const { initialCamera, camera, store } = get();
-      if (initialCamera == null || camera == null || store == null) {
+      const { store, initialCamera } = get();
+      if (store == null) {
         return;
       }
       set({
         mode: "none",
         session: undefined,
         inputSources: undefined,
-        camera: undefined,
         initialCamera: undefined,
         layers: undefined,
       });
-      const { camera: currentCamera, gl } = store.getState();
-      (gl.xr as any).setUserCamera(undefined);
+      const { camera } = store.getState();
+      //(gl.xr as any).setUserCamera(undefined);
 
-      if (currentCamera === camera) {
+      if (camera === store.getState().gl.xr.getCamera()) {
         store.setState({ camera: initialCamera });
       }
     },
@@ -121,24 +118,23 @@ export const useXR = create(
       session.addEventListener("inputsourceschange", this.onXRInputSourcesChanged);
       session.addEventListener("end", this.onXREnd);
 
-      const { camera: initialCamera, gl } = store.getState();
+      const { gl, camera } = store.getState();
       //fake camera we use to represent the transformation when in XR
-      const camera = new PerspectiveCamera();
+      //const camera = new PerspectiveCamera();
 
       //update xr manager
       await gl.xr.setSession(session);
-      (gl.xr as any).setUserCamera(camera);
+      //(gl.xr as any).setUserCamera(camera);
 
       //update XR state & r3f state
       set({
         mode,
         session,
         inputSources,
-        camera,
-        initialCamera,
+        initialCamera: camera,
         layers: [{ index: 0, layer: gl.xr.getBaseLayer() }],
       });
-      store.setState({ camera });
+      store.setState({ camera: gl.xr.getCamera() });
     },
   })),
 );

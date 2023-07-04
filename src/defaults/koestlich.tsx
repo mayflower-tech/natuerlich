@@ -26,7 +26,13 @@ export const KoestlichQuadLayer = forwardRef<
 >(({ children, far, near, precision = 0.1, contentScale = 1, ...props }, ref) => {
   return (
     <QuadLayerPortal {...props} ref={ref}>
-      <KoestlichFullscreenCamera zoom={contentScale} far={far} near={near} />
+      <KoestlichFullscreenCamera
+        width={props.pixelWidth}
+        height={props.pixelHeight}
+        zoom={contentScale}
+        far={far}
+        near={near}
+      />
       <RootContainer
         anchorX="center"
         anchorY="center"
@@ -45,8 +51,8 @@ export const KoestlichQuadLayer = forwardRef<
  */
 export const KoestlichFullscreenCamera = forwardRef<
   OrthographicCamera,
-  { near?: number; far?: number; zoom?: number }
->(({ near = 100, far = -1, zoom = 1 }, ref) => {
+  { near?: number; far?: number; zoom?: number; width: number; height: number }
+>(({ near = 100, far = -1, zoom = 1, width, height }, ref) => {
   const store = useStore();
   const internalRef = useRef<OrthographicCamera>(null);
   useImperativeHandle(ref, () => internalRef.current!, []);
@@ -70,10 +76,17 @@ export const KoestlichFullscreenCamera = forwardRef<
 
   useLayoutEffect(() => internalRef.current?.updateProjectionMatrix(), [zoom, near, far]);
 
+  const halfWidth = width / 2;
+  const halfHeight = height / 2;
+
   //the camera automatically retrieves the width and height and positions itself and the view bounds accordingly
   return (
     <orthographicCamera
       position={[0, 0, near]}
+      left={-halfWidth}
+      right={halfWidth}
+      top={halfHeight}
+      bottom={-halfHeight}
       zoom={zoom}
       near={0}
       far={near - far}

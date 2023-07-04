@@ -2,6 +2,7 @@
 import { Canvas, GroupProps, createPortal, useLoader, useStore } from "@react-three/fiber";
 import {
   ComponentProps,
+  MutableRefObject,
   ReactNode,
   Suspense,
   useCallback,
@@ -38,8 +39,11 @@ import {
 import {
   BoxGeometry,
   BufferGeometry,
+  Euler,
+  Matrix4,
   PerspectiveCamera,
   PlaneGeometry,
+  Quaternion,
   Scene,
   TextureLoader,
   Vector3,
@@ -88,14 +92,17 @@ import {
   Trash,
 } from "@coconut-xr/kruemel/icons/outline";
 import { AnchorObject } from "./anchor-object.js";
-import { Plane } from "@react-three/drei";
-import { DoubleGrabCube } from "./double-grab.js";
+import { Box, Plane } from "@react-three/drei";
 import {
   TeleportTarget,
   PointerHand,
   PointerController,
   TeleportController,
   KoestlichQuadLayer,
+  DoubleGrab,
+  TouchHand,
+  GrabHand,
+  GrabController,
 } from "@coconut-xr/natuerlich/defaults";
 import { getInputSourceId, getPlaneId } from "@coconut-xr/natuerlich";
 
@@ -111,7 +118,7 @@ const sessionOptions: XRSessionInit = {
     "local-floor",
     "hand-tracking",
     "anchors",
-    "layers",
+    //"layers",
     //"depth-sorted-layers",
     //"plane-detection",
   ],
@@ -119,7 +126,8 @@ const sessionOptions: XRSessionInit = {
 
 export default function Index() {
   useSessionGrant();
-  const [position, setPosition] = useState(new Vector3(2, 0, 1.5));
+  const [position, setPosition] = useState(new Vector3(-2, 0, 0.5));
+  const ref = useRef<() => void>();
   const enterAR = useEnterXR("immersive-ar", sessionOptions);
   const enterVR = useEnterXR("immersive-vr", sessionOptions);
   const frameBufferScaling = useNativeFramebufferScaling();
@@ -129,6 +137,7 @@ export default function Index() {
       <div style={{ zIndex: 1, position: "absolute", top: 0, left: 0 }}>
         <button onClick={() => enterAR()}>AR</button>
         <button onClick={() => enterVR()}>VR</button>
+        <button onClick={() => ref.current?.()}>Capture</button>
       </div>
       <Canvas
         dpr={window.devicePixelRatio}
@@ -137,44 +146,47 @@ export default function Index() {
         style={{ width: "100vw", height: "100svh", touchAction: "none" }}
         events={noEvents}
       >
-        <IncludeWhenInSessionMode allow="none">
-          <Background color="red" />
-        </IncludeWhenInSessionMode>
         <ambientLight intensity={1} />
         <XR frameBufferScaling={frameBufferScaling} frameRate={frameRate} />
         <XWebPointers />
         <ImmersiveSessionOrigin position={position}>
-          <InputSources onTeleport={setPosition} />
+          <InputSources functionRef={ref} onTeleport={setPosition} />
         </ImmersiveSessionOrigin>
-        <NonImmersiveCamera position={[0, 0, 5]} />
+        <NonImmersiveCamera position={[0, 1, 5]} />
         <AnchorObject />
         <Suspense>
           <NormalTexture />
         </Suspense>
-        <TeleportTarget>
+        {/*<TeleportTarget>
           <Plane scale={100} rotation={[-Math.PI / 2, 0, 0]} />
-        </TeleportTarget>
+  </TeleportTarget>*/}
         <Suspense>
           <QuadLayerTexture />
         </Suspense>
         <Suspense>
           <CylinderLayerTexture />
         </Suspense>
-        <TrackedPlanes />
         <KoestlichQuadLayer
           contentScale={300}
           pixelWidth={1024}
           pixelHeight={1024}
           position={[-2, 1, 0]}
         >
-          <Koestlich />
-          <DoubleGrabCube />
-          <Background color="green" />
+          <Suspense>
+            <Koestlich />
+          </Suspense>
+          <DoubleGrab>
+            <Box />
+          </DoubleGrab>
         </KoestlichQuadLayer>
+        <IncludeWhenInSessionMode deny="immersive-ar">
+          <Background color="red" />
+        </IncludeWhenInSessionMode>
         <QuadLayerPortal pixelWidth={1024} pixelHeight={1024} position={[2, 1, 0]}>
+          <DoubleGrab position={[0, 0, -5]}>
+            <Box />
+          </DoubleGrab>
           <Background color="green" />
-          <DoubleGrabCube />
-          <NonImmersiveCamera position={[0, 0, 5]} />
         </QuadLayerPortal>
         {/*<DoubleGrabCube />*/}
       </Canvas>
@@ -201,7 +213,7 @@ function NormalTexture() {
   const texture = useLoader(TextureLoader, "test.png");
   return (
     <mesh onPointerEnter={console.log} position={[1, 1, 0]} geometry={planeGeometry}>
-      <meshBasicMaterial map={texture} />
+      <meshBasicMaterial toneMapped={false} map={texture} />
     </mesh>
   );
 }
@@ -231,17 +243,31 @@ function CylinderLayerTexture() {
   );
 }
 
-function InputSources({ onTeleport }: { onTeleport: (point: Vector3) => void }) {
+function InputSources({
+  onTeleport,
+  functionRef,
+}: {
+  functionRef: MutableRefObject<(() => void) | undefined>;
+  onTeleport: (point: Vector3) => void;
+}) {
   const inputSources = useInputSources();
   return (
     <>
       {inputSources.map((inputSource) =>
         inputSource == null || inputSource.handedness === "none" ? null : inputSource.hand !=
           null ? (
-          <Hand
+          /*<GrabHand
+            cursorPressColor="blue"
+            id={inputSource.handedness === "left" ? -3 : -4}
             hand={inputSource.hand}
             inputSource={inputSource}
             key={getInputSourceId(inputSource)}
+          />*/
+          <Hand
+            key={getInputSourceId(inputSource)}
+            inputSource={inputSource}
+            hand={inputSource.hand}
+            functionRef={functionRef}
           />
         ) : (
           /*<PointerHand
@@ -262,9 +288,15 @@ function InputSources({ onTeleport }: { onTeleport: (point: Vector3) => void }) 
             inputSource={inputSource}
             id={inputSource.handedness === "left" ? -5 : -6}
           />*/
-          <TeleportController
+          /*<TeleportController
             onTeleport={onTeleport}
             id={inputSource.handedness === "left" ? -5 : -6}
+            key={getInputSourceId(inputSource)}
+            inputSource={inputSource}
+          />*/
+          <GrabController
+            id={inputSource.handedness === "left" ? -5 : -6}
+            cursorPressColor="blue"
             key={getInputSourceId(inputSource)}
             inputSource={inputSource}
           />
@@ -274,42 +306,29 @@ function InputSources({ onTeleport }: { onTeleport: (point: Vector3) => void }) 
   );
 }
 
-function Hand({ hand, inputSource }: { hand: XRHand; inputSource: XRInputSource }) {
+function Hand({
+  hand,
+  inputSource,
+  functionRef,
+}: {
+  functionRef: MutableRefObject<(() => void) | undefined>;
+  hand: XRHand;
+  inputSource: XRInputSource;
+}) {
   const pointerRef = useRef<InputDeviceFunctions>(null);
   const colliderRef = useRef<InputDeviceFunctions>(null);
-  const initiateRoomCapture = useInitRoomCapture();
+  //const initiateRoomCapture = useInitRoomCapture();
 
-  useHandPoses(
-    hand,
-    inputSource.handedness,
-    (name, prevName) => {
-      const isFist = name === "fist";
-      const wasFist = prevName === "fist";
-      if (isFist == wasFist) {
-        return;
-      }
-      if (isFist) {
-        colliderRef.current?.press(0, {});
-        return;
-      }
-      if (wasFist) {
-        colliderRef.current?.release(0, {});
-        return;
-      }
-    },
-    {
-      fist: "fist.handpose",
-      relax: "relax.handpose",
-      point: "point.handpose",
-    },
-  );
+  functionRef.current = useHandPoses(hand, inputSource.handedness, (name, prevName) => {}, {
+    relax: "/relax.handpose",
+  });
 
   useInputSourceEvent(
     "selectstart",
     inputSource,
     (e) => {
       pointerRef.current?.press(0, e);
-      initiateRoomCapture?.();
+      //initiateRoomCapture?.();
     },
     [],
   );

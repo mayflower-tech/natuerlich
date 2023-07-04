@@ -1,13 +1,18 @@
 import { XIntersection } from "@coconut-xr/xinteraction";
 import { InputDeviceFunctions, XStraightPointer } from "@coconut-xr/xinteraction/react";
-import React, { ReactNode, Suspense, useRef } from "react";
+import React, { ReactNode, Suspense, useRef, useMemo } from "react";
 import { DynamicHandModel, HandBoneGroup } from "../react/hand.js";
 import { useInputSourceEvent } from "../react/listeners.js";
 import { SpaceGroup } from "../react/space.js";
-import { BoxGeometry, Vector3 } from "three";
-
-const geometry = new BoxGeometry();
-geometry.translate(0, 0, -0.5);
+import { ColorRepresentation, Mesh, Vector3 } from "three";
+import {
+  CursorBasicMaterial,
+  RayBasicMaterial,
+  updateColor,
+  updateCursorTransformation,
+  updateRayTransformation,
+} from "./index.js";
+import { createPortal, useThree } from "@react-three/fiber";
 
 const negZAxis = new Vector3(0, 0, -1);
 
@@ -17,17 +22,76 @@ export function PointerHand({
   id,
   children,
   filterIntersections,
+  cursorColor = "white",
+  cursorPressColor = "blue",
+  cursorOpacity = 1,
+  cursorSize = 0.2,
+  cursorVisible = true,
+  rayColor = "white",
+  rayPressColor = "blue",
+  rayMaxLength = 1,
+  rayVisibile = true,
+  raySize = 0.01,
 }: {
   hand: XRHand;
   inputSource: XRInputSource;
   children?: ReactNode;
   id: number;
+  cursorColor?: ColorRepresentation;
+  cursorPressColor?: ColorRepresentation;
+  cursorOpacity?: number;
+  cursorSize?: number;
+  cursorVisible?: boolean;
+  rayColor?: ColorRepresentation;
+  rayPressColor?: ColorRepresentation;
+  rayMaxLength?: number;
+  rayVisibile?: boolean;
+  raySize?: number;
   filterIntersections?: (intersections: XIntersection[]) => XIntersection[];
 }) {
   const pointerRef = useRef<InputDeviceFunctions>(null);
+  const pressedRef = useRef(false);
+  const cursorRef = useRef<Mesh>(null);
+  const rayRef = useRef<Mesh>(null);
 
-  useInputSourceEvent("selectstart", inputSource, (e) => pointerRef.current?.press(0, e), []);
-  useInputSourceEvent("selectend", inputSource, (e) => pointerRef.current?.release(0, e), []);
+  const cursorMaterial = useMemo(
+    () => new CursorBasicMaterial({ transparent: true, toneMapped: false }),
+    [],
+  );
+  cursorMaterial.opacity = cursorOpacity;
+  updateColor(pressedRef.current, cursorMaterial, cursorColor, cursorPressColor);
+
+  const rayMaterial = useMemo(
+    () => new RayBasicMaterial({ transparent: true, toneMapped: false }),
+    [],
+  );
+
+  updateColor(pressedRef.current, rayMaterial, rayColor, rayPressColor);
+
+  useInputSourceEvent(
+    "selectstart",
+    inputSource,
+    (e) => {
+      pressedRef.current = true;
+      updateColor(pressedRef.current, rayMaterial, rayColor, rayPressColor);
+      updateColor(pressedRef.current, cursorMaterial, cursorColor, cursorPressColor);
+      pointerRef.current?.press(0, e);
+    },
+    [],
+  );
+  useInputSourceEvent(
+    "selectend",
+    inputSource,
+    (e) => {
+      pressedRef.current = false;
+      updateColor(pressedRef.current, rayMaterial, rayColor, rayPressColor);
+      updateColor(pressedRef.current, cursorMaterial, cursorColor, cursorPressColor);
+      pointerRef.current?.release(0, e);
+    },
+    [],
+  );
+
+  const scene = useThree(({ scene }) => scene);
 
   return (
     <>
@@ -38,15 +102,31 @@ export function PointerHand({
       </Suspense>
       <SpaceGroup space={inputSource.targetRaySpace}>
         <XStraightPointer
+          onIntersections={(intersections) => {
+            updateCursorTransformation(intersections, cursorRef);
+            updateRayTransformation(intersections, rayMaxLength, rayRef);
+          }}
           direction={negZAxis}
           filterIntersections={filterIntersections}
           id={id}
           ref={pointerRef}
         />
-        <mesh scale={[0.01, 0.01, 1]} geometry={geometry}>
-          <meshBasicMaterial color={0xffffff} />
+        <mesh
+          visible={rayVisibile}
+          scale-x={raySize}
+          scale-y={raySize}
+          material={rayMaterial}
+          ref={rayRef}
+        >
+          <boxGeometry />
         </mesh>
       </SpaceGroup>
+      {createPortal(
+        <mesh visible={cursorVisible} scale={cursorSize} ref={cursorRef} material={cursorMaterial}>
+          <planeGeometry />
+        </mesh>,
+        scene,
+      )}
     </>
   );
 }

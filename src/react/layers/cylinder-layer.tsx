@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import { GroupProps, RootState, createPortal } from "@react-three/fiber";
+import { GroupProps, RootState, context, reconciler, useStore } from "@react-three/fiber";
 import {
   ComponentPropsWithoutRef,
   forwardRef,
@@ -15,14 +15,16 @@ import {
   CylinderGeometry,
   Mesh,
   Object3D,
+  PerspectiveCamera,
   Scene,
   Texture,
   Vector3,
   WebGLRenderTarget,
   WebGLRenderer,
 } from "three";
-import { RenderLayerPortal, useLayer, useLayerUpdate } from "./index.js";
-import { useMeshForwardEventsFromProps } from "@coconut-xr/xinteraction/react";
+import { useLayer, useLayerUpdate } from "./index.js";
+import { useMeshForwardEventsFromStore } from "@coconut-xr/xinteraction/react";
+import { create } from "zustand";
 
 const deg60 = (60 * Math.PI) / 180;
 
@@ -129,6 +131,7 @@ export const CylinderLayer = forwardRef<
           map={texture}
           colorWrite={layer == null}
           transparent={transparent}
+          toneMapped={false}
         />
       </mesh>
     );
@@ -141,41 +144,49 @@ function updateLayerScale(radius: number, layer: XRCylinderLayer, scale: Vector3
 
 export const CylinderLayerPortal = forwardRef<
   Object3D,
-  Omit<ComponentPropsWithoutRef<typeof CylinderLayer>, "updateTarget" | "texture">
->(({ children, ...props }, ref) => {
-  const properties = useMemo<Partial<RootState>>(
-    () => ({
-      scene: new Scene(),
+  Omit<ComponentPropsWithoutRef<typeof CylinderLayer>, "updateTarget" | "texture"> & {
+    dragDistance?: number;
+  }
+>(({ children, dragDistance, ...props }, ref) => {
+  const rootStore = useStore();
+  const store = useMemo(() => {
+    const scene = new Scene();
+    const camera = new PerspectiveCamera(undefined, props.pixelWidth / props.pixelHeight);
+    camera.userData.helloWorld = true;
+    scene.add(camera);
+    return create<RootState>((set, get) => ({
+      ...rootStore.getState(),
+      set,
+      get,
+      scene,
+      camera,
       size: { left: 0, top: 0, width: props.pixelWidth, height: props.pixelHeight },
-    }),
-    [props.pixelHeight, props.pixelWidth],
-  );
+    }));
+  }, [rootStore, props.pixelHeight, props.pixelWidth]);
 
   const updateTarget = useCallback((renderer: WebGLRenderer, target: WebGLRenderTarget) => {
-    if (properties.camera == null || properties.scene == null) {
-      return;
-    }
+    const { camera, scene } = store.getState();
     const prevTarget = renderer.getRenderTarget();
     const xrEnabled = renderer.xr.enabled;
 
     renderer.xr.enabled = false;
     renderer.setRenderTarget(target);
-    renderer.render(properties.scene, properties.camera);
+    renderer.render(scene, camera);
 
     renderer.xr.enabled = xrEnabled;
     renderer.setRenderTarget(prevTarget);
   }, []);
 
-  const eventProps = useMeshForwardEventsFromProps(properties);
+  const eventProps = useMeshForwardEventsFromStore(store, dragDistance);
 
   useImperativeHandle(ref, () => eventProps.ref.current!);
 
   return (
     <>
-      {createPortal(
-        <RenderLayerPortal properties={properties}>{children}</RenderLayerPortal>,
-        properties.scene!,
-        properties as Partial<RootState>,
+      {reconciler.createPortal(
+        <context.Provider value={store}>{children}</context.Provider>,
+        store,
+        null,
       )}
       <CylinderLayer {...props} updateTarget={updateTarget} {...eventProps} />
     </>

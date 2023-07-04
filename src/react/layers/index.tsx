@@ -201,24 +201,5 @@ export function useLayerUpdate<T extends XRQuadLayer | XRCylinderLayer>(
   return texture ?? nonLayerRenderTarget?.texture;
 }
 
-export function RenderLayerPortal({
-  properties,
-  children,
-}: {
-  properties: { camera?: Camera; scene?: Scene };
-  children?: ReactNode;
-}) {
-  const store = useStore();
-  useEffect(() => {
-    const update = (state: RootState) => {
-      properties.camera = state.camera;
-      properties.scene = state.scene;
-    };
-    update(store.getState());
-    return store.subscribe(update);
-  }, []);
-  return <>{children}</>;
-}
-
 export * from "./quad-layer.js";
 export * from "./cylinder-layer.js";

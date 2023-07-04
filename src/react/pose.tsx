@@ -28,6 +28,11 @@ export function useHandPoses(
 
     updateHandMatrices(frame, referenceSpace, hand, handMatrices);
 
+    if (dumbRef.current) {
+      downloadPoseData(toPoseData(handMatrices, handedness === "left"));
+      dumbRef.current = false;
+    }
+
     let bestPoseName: string | undefined;
     let bestPoseDistance: number | undefined;
     let bestPoseOffset: number | undefined;
@@ -36,10 +41,6 @@ export function useHandPoses(
       const pose = getHandPose(path, baseUrl);
       if (pose == null) {
         continue;
-      }
-      if (dumbRef.current) {
-        downloadPoseData(toPoseData(handMatrices, handedness === "left"));
-        dumbRef.current = false;
       }
       const distance = computeHandPoseDistance(handMatrices, pose, handedness === "left");
       if (bestPoseDistance == null || distance < bestPoseDistance) {

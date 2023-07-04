@@ -3,6 +3,7 @@ import { PerspectiveCameraProps, useStore } from "@react-three/fiber";
 import React, { useEffect, useImperativeHandle, useRef } from "react";
 import { forwardRef } from "react";
 import { PerspectiveCamera } from "three";
+import { useXR } from "./state.js";
 
 const manualCameraProp = { manual: true } as any;
 
@@ -12,7 +13,12 @@ export const NonImmersiveCamera = forwardRef<PerspectiveCamera, PerspectiveCamer
     const internalRef = useRef<PerspectiveCamera>(null);
     useImperativeHandle(ref, () => internalRef.current!, []);
 
+    const enabled = useXR(({ mode }) => mode === "none");
+
     useEffect(() => {
+      if (!enabled) {
+        return;
+      }
       const newCamera = internalRef.current;
       if (newCamera == null) {
         return;
@@ -44,7 +50,12 @@ export const NonImmersiveCamera = forwardRef<PerspectiveCamera, PerspectiveCamer
         }
         store.setState({ camera: prevCamera });
       };
-    }, [store]);
+    }, [store, enabled]);
+
+    if (!enabled) {
+      return null;
+    }
+
     return <perspectiveCamera {...manualCameraProp} ref={internalRef} {...props} />;
   },
 );

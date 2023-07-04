@@ -1,8 +1,7 @@
 import { isXIntersection } from "@coconut-xr/xinteraction";
-import { Box } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import { useRef, useMemo, useCallback, useState } from "react";
-import { Vector3, Quaternion, Mesh } from "three";
+import { GroupProps, useFrame } from "@react-three/fiber";
+import React, { useRef, useMemo, useCallback, ReactNode } from "react";
+import { Vector3, Quaternion, Group } from "three";
 
 const pointOffsetPosition = new Vector3();
 const deltaRotation = new Quaternion();
@@ -10,9 +9,8 @@ const deltaRotation = new Quaternion();
 const initialInputDeviceOffset = new Vector3();
 const currentInputDeviceOffset = new Vector3();
 
-export function DoubleGrabCube() {
-  const ref = useRef<Mesh>(null);
-  const [hovered, setHovered] = useState<Array<number>>([]);
+export function DoubleGrab({ children, ...props }: { children?: ReactNode } & GroupProps) {
+  const ref = useRef<Group>(null);
 
   const state = useMemo<{
     objectPosition: Vector3;
@@ -112,7 +110,7 @@ export function DoubleGrabCube() {
   }, []);
 
   return (
-    <Box
+    <group
       onPointerDown={(e) => {
         if (!isXIntersection(e)) {
           return;
@@ -129,7 +127,6 @@ export function DoubleGrabCube() {
       }}
       onPointerEnter={(e) => {
         e.stopPropagation();
-        setHovered((c) => [...c, e.pointerId]);
       }}
       onPointerUp={(e) => {
         state.intersections.delete(e.pointerId);
@@ -139,7 +136,6 @@ export function DoubleGrabCube() {
         e.stopPropagation();
         state.intersections.delete(e.pointerId);
         updateObjectMatrix();
-        setHovered((c) => c.filter((id) => id != e.pointerId));
       }}
       onPointerMove={(e) => {
         if (!isXIntersection(e)) {
@@ -153,8 +149,9 @@ export function DoubleGrabCube() {
         intersection.currentRotation = e.inputDeviceRotation;
       }}
       ref={ref}
+      {...props}
     >
-      <meshBasicMaterial color={hovered.length > 0 ? 0x000000 : 0xaa0000} toneMapped={false} />
-    </Box>
+      {children}
+    </group>
   );
 }

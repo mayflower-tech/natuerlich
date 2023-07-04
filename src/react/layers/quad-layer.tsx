@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import { GroupProps, RootState, createPortal } from "@react-three/fiber";
+import { GroupProps, RootState, context, reconciler, useStore } from "@react-three/fiber";
 import {
   ComponentPropsWithoutRef,
   forwardRef,
@@ -11,7 +11,6 @@ import {
 import React from "react";
 import {
   BufferGeometry,
-  Camera,
   Mesh,
   Object3D,
   PerspectiveCamera,
@@ -22,11 +21,9 @@ import {
   WebGLRenderTarget,
   WebGLRenderer,
 } from "three";
-import { RenderLayerPortal, useLayer, useLayerUpdate } from "./index.js";
-import {
-  useMeshForwardEvents,
-  useMeshForwardEventsFromProps,
-} from "@coconut-xr/xinteraction/react";
+import { useLayer, useLayerUpdate } from "./index.js";
+import { create } from "zustand";
+import { useMeshForwardEventsFromStore } from "@coconut-xr/xinteraction/react";
 
 const planeGeometry = new PlaneGeometry();
 
@@ -114,6 +111,7 @@ export const QuadLayer = forwardRef<
           map={texture}
           depthWrite={true}
           colorWrite={layer == null}
+          toneMapped={false}
         />
       </mesh>
     );
@@ -127,41 +125,49 @@ function updateLayerScale(layer: XRQuadLayer, scale: Vector3) {
 
 export const QuadLayerPortal = forwardRef<
   Object3D,
-  Omit<ComponentPropsWithoutRef<typeof QuadLayer>, "updateTarget" | "texture">
->(({ children, ...props }, ref) => {
-  const properties = useMemo<Partial<RootState>>(
-    () => ({
-      scene: new Scene(),
+  Omit<ComponentPropsWithoutRef<typeof QuadLayer>, "updateTarget" | "texture"> & {
+    dragDistance?: number;
+  }
+>(({ children, dragDistance, ...props }, ref) => {
+  const rootStore = useStore();
+  const store = useMemo(() => {
+    const scene = new Scene();
+    const camera = new PerspectiveCamera(undefined, props.pixelWidth / props.pixelHeight);
+    camera.userData.helloWorld = true;
+    scene.add(camera);
+    return create<RootState>((set, get) => ({
+      ...rootStore.getState(),
+      set,
+      get,
+      scene,
+      camera,
       size: { left: 0, top: 0, width: props.pixelWidth, height: props.pixelHeight },
-    }),
-    [props.pixelHeight, props.pixelWidth],
-  );
+    }));
+  }, [rootStore, props.pixelHeight, props.pixelWidth]);
 
   const updateTarget = useCallback((renderer: WebGLRenderer, target: WebGLRenderTarget) => {
-    if (properties.camera == null || properties.scene == null) {
-      return;
-    }
+    const { camera, scene } = store.getState();
     const prevTarget = renderer.getRenderTarget();
     const xrEnabled = renderer.xr.enabled;
 
     renderer.xr.enabled = false;
     renderer.setRenderTarget(target);
-    renderer.render(properties.scene, properties.camera);
+    renderer.render(scene, camera);
 
     renderer.xr.enabled = xrEnabled;
     renderer.setRenderTarget(prevTarget);
   }, []);
 
-  const eventProps = useMeshForwardEventsFromProps(properties);
+  const eventProps = useMeshForwardEventsFromStore(store.getState, dragDistance);
 
   useImperativeHandle(ref, () => eventProps.ref.current!);
 
   return (
     <>
-      {createPortal(
-        <RenderLayerPortal properties={properties}>{children}</RenderLayerPortal>,
-        properties.scene!,
-        properties as Partial<RootState>,
+      {reconciler.createPortal(
+        <context.Provider value={store}>{children}</context.Provider>,
+        store,
+        null,
       )}
       <QuadLayer {...props} updateTarget={updateTarget} {...eventProps} />
     </>

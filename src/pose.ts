@@ -36,9 +36,6 @@ const tempMat2 = new Matrix4();
 const tempQuat1 = new Quaternion();
 const tempQuat2 = new Quaternion();
 
-const mirrorMatrix = new Matrix4();
-mirrorMatrix.elements[0] = -1;
-
 export function computeHandPoseDistance(
   handMatrices: Float32Array,
   poseData: Float32Array,
@@ -47,12 +44,12 @@ export function computeHandPoseDistance(
   const joinCountFromPose = poseData[0];
   const poseHandData = new Float32Array(
     poseData.buffer,
-    4, //1 float
+    4 * 1, //1 float
     joinCountFromPose * 16, //1 matrix for every joint
   );
   const poseWeightData = new Float32Array(
     poseData.buffer,
-    4 + joinCountFromPose * 16, //directly after the pose hand data
+    4 * (1 + joinCountFromPose * 16), //directly after the pose hand data
     joinCountFromPose, //1 weight as float for every joint
   );
 
@@ -67,13 +64,18 @@ export function computeHandPoseDistance(
     // Algo based on join rotation apply quaternion to a vector and
     // compare positions of vectors should work a bit better
     const offset = i * 16;
+
+    //pose bone quaternion
     tempMat1.fromArray(poseHandData, offset);
-    if (mirror) {
-      tempMat1.multiply(mirrorMatrix);
-    }
-    tempMat2.fromArray(handMatrices, offset);
     tempQuat1.setFromRotationMatrix(tempMat1);
+    if (mirror) {
+      mirrorQuaterionOnXAxis(tempQuat1);
+    }
+
+    //current bone quaternion
+    tempMat2.fromArray(handMatrices, offset);
     tempQuat2.setFromRotationMatrix(tempMat2);
+
     dist += tempQuat1.angleTo(tempQuat2) * poseWeight;
   }
   return dist / totalWeight;
@@ -86,7 +88,10 @@ export function storeHandData(handMatrices: Float32Array, mirror: boolean): Floa
   for (let i = 0; i < jointCount; i++) {
     tempMat1.fromArray(handMatrices, i * 16);
     if (mirror) {
-      tempMat1.multiply(mirrorMatrix);
+      tempQuat1.setFromRotationMatrix(tempMat1);
+      mirrorQuaterionOnXAxis(tempQuat1);
+      // Copies the rotation component of the supplied matrix m into this matrix rotation component.
+      tempMat1.makeRotationFromQuaternion(tempQuat1);
     }
     tempMat1.toArray(result, 1 + i * 16);
   }
@@ -111,4 +116,9 @@ export function getHandPose(path: string, baseUrl: string): Float32Array | undef
       .catch(console.error);
   }
   return undefined;
+}
+
+function mirrorQuaterionOnXAxis(quaternion: Quaternion): void {
+  quaternion.x = -quaternion.x;
+  quaternion.w = -quaternion.w;
 }

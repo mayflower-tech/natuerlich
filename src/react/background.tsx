@@ -1,6 +1,6 @@
 import { createPortal, useThree } from "@react-three/fiber";
 import React from "react";
-import { BackSide, BufferAttribute, BufferGeometry, ColorRepresentation, FrontSide } from "three";
+import { BufferAttribute, BufferGeometry, ColorRepresentation, FrontSide } from "three";
 
 //TODO: map
 
@@ -17,7 +17,13 @@ export function Background({ color }: { color: ColorRepresentation }) {
       renderOrder={-100}
       geometry={screenQuadGeometry}
     >
-      <meshBasicMaterial depthWrite={false} depthTest={true} side={FrontSide} color={color} />
+      <meshBasicMaterial
+        toneMapped={false}
+        depthWrite={false}
+        depthTest={true}
+        side={FrontSide}
+        color={color}
+      />
     </mesh>,
     camera,
   );
