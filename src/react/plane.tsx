@@ -2,8 +2,8 @@
 import { MeshProps, useFrame } from "@react-three/fiber";
 import React, { useImperativeHandle, useMemo, useRef } from "react";
 import { forwardRef, startTransition, useState } from "react";
-import { BufferAttribute, BufferGeometry, Mesh, Shape, ShapeGeometry, Vector2 } from "three";
-import { SpaceGroup, useApplySpace } from "./space.js";
+import { BufferGeometry, Mesh, Shape, ShapeGeometry, Vector2 } from "three";
+import { useApplySpace } from "./space.js";
 import { useXR } from "./state.js";
 
 export function useInitRoomCapture(): () => Promise<undefined> | undefined {
@@ -38,7 +38,9 @@ export function useTrackedPlanes(): Array<XRPlane> | undefined {
 function createGeometryFromPolygon(polygon: DOMPointReadOnly[]): BufferGeometry {
   const shape = new Shape();
   shape.setFromPoints(polygon.map(({ x, z }) => new Vector2(x, z)));
-  return new ShapeGeometry(shape);
+  const geometry = new ShapeGeometry(shape);
+  geometry.rotateX(-Math.PI / 2);
+  return geometry;
 }
 
 export const TrackedPlane = forwardRef<Mesh, { plane: XRPlane } & MeshProps>(
@@ -58,7 +60,7 @@ export const TrackedPlane = forwardRef<Mesh, { plane: XRPlane } & MeshProps>(
     useImperativeHandle(ref, () => internalRef.current!, []);
     useApplySpace(internalRef, plane.planeSpace);
     return (
-      <mesh matrixAutoUpdate={false} {...props} ref={internalRef}>
+      <mesh {...props} matrixAutoUpdate={false} ref={internalRef}>
         {children}
       </mesh>
     );

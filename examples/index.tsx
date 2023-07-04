@@ -39,6 +39,7 @@ import {
 import {
   BoxGeometry,
   BufferGeometry,
+  DoubleSide,
   Euler,
   Matrix4,
   PerspectiveCamera,
@@ -120,7 +121,7 @@ const sessionOptions: XRSessionInit = {
     "anchors",
     //"layers",
     //"depth-sorted-layers",
-    //"plane-detection",
+    "plane-detection",
   ],
 };
 
@@ -146,11 +147,13 @@ export default function Index() {
         style={{ width: "100vw", height: "100svh", touchAction: "none" }}
         events={noEvents}
       >
-        <ambientLight intensity={1} />
+        <ambientLight intensity={0.5} />
+        <pointLight position={[0, 1, 0]} intensity={10} />
         <XR frameBufferScaling={frameBufferScaling} frameRate={frameRate} />
         <XWebPointers />
         <ImmersiveSessionOrigin position={position}>
           <InputSources functionRef={ref} onTeleport={setPosition} />
+          <TrackedPlanes />
         </ImmersiveSessionOrigin>
         <NonImmersiveCamera position={[0, 1, 5]} />
         <AnchorObject />
@@ -200,7 +203,7 @@ function TrackedPlanes() {
     <>
       {planes?.map((plane) => (
         <TrackedPlane plane={plane} key={getPlaneId(plane)}>
-          <meshPhongMaterial color="red" />
+          <meshPhongMaterial color="gray" />
         </TrackedPlane>
       ))}
     </>
