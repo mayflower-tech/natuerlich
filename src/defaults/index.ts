@@ -22,8 +22,10 @@ const quaternionHelper = new Quaternion();
 const offsetHelper = new Vector3();
 
 export function updateCursorTransformation(
+  inputSource: XRInputSource,
   intersections: ReadonlyArray<XIntersection>,
   cursorRef: RefObject<Object3D>,
+  cursorOffset: number,
 ) {
   if (cursorRef.current == null) {
     return;
@@ -45,7 +47,7 @@ export function updateCursorTransformation(
     intersection.object.getWorldQuaternion(cursor.quaternion);
     cursor.quaternion.multiply(quaternionHelper);
 
-    offsetHelper.set(0, 0, 0.01);
+    offsetHelper.set(0, 0, cursorOffset * (inputSource.handedness === "left" ? 1 : 1.5));
     offsetHelper.applyQuaternion(cursor.quaternion);
     cursor.position.add(offsetHelper);
   }

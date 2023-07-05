@@ -39,7 +39,7 @@ function createGeometryFromPolygon(polygon: DOMPointReadOnly[]): BufferGeometry 
   const shape = new Shape();
   shape.setFromPoints(polygon.map(({ x, z }) => new Vector2(x, z)));
   const geometry = new ShapeGeometry(shape);
-  geometry.rotateX(-Math.PI / 2);
+  geometry.rotateX(Math.PI / 2);
   return geometry;
 }
 

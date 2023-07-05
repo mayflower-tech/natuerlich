@@ -22,7 +22,8 @@ export function TouchHand({
   pressRadius = 0.03,
   cursorColor = "black",
   cursorPressColor = "white",
-  cursorOpacity = 1,
+  cursorOpacity = 0.5,
+  cursorOffset = 0.01,
 }: {
   hand: XRHand;
   inputSource: XRInputSource;
@@ -36,6 +37,7 @@ export function TouchHand({
   cursorOpacity?: number;
   cursorSize?: number;
   cursorVisible?: boolean;
+  cursorOffset: number;
 }) {
   const scene = useThree(({ scene }) => scene);
 
@@ -67,7 +69,7 @@ export function TouchHand({
               id={id}
               filterIntersections={filterIntersections}
               onIntersections={(intersections) => {
-                updateCursorTransformation(intersections, cursorRef);
+                updateCursorTransformation(inputSource, intersections, cursorRef, cursorOffset);
                 if (intersections.length === 0) {
                   return;
                 }
@@ -88,7 +90,13 @@ export function TouchHand({
         </DynamicHandModel>
       </Suspense>
       {createPortal(
-        <mesh visible={cursorVisible} scale={cursorSize} ref={cursorRef} material={cursorMaterial}>
+        <mesh
+          renderOrder={inputSource.handedness === "left" ? 1 : 2}
+          visible={cursorVisible}
+          scale={cursorSize}
+          ref={cursorRef}
+          material={cursorMaterial}
+        >
           <planeGeometry />
         </mesh>,
         scene,

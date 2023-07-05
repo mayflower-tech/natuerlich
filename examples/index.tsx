@@ -72,6 +72,7 @@ import {
   TouchHand,
   GrabHand,
   PointerHand,
+  PointerController,
 } from "@coconut-xr/natuerlich/defaults";
 import { getInputSourceId, getPlaneId } from "@coconut-xr/natuerlich";
 
@@ -265,7 +266,7 @@ function InputSources({
             key={getInputSourceId(inputSource)}
             inputSource={inputSource}
           />*/
-          <GrabController
+          <PointerController
             id={inputSource.handedness === "left" ? -5 : -6}
             cursorPressColor="blue"
             key={getInputSourceId(inputSource)}
@@ -429,7 +430,7 @@ function Koestlich() {
 
   return (
     <Container
-      backgroundColor="white"
+      backgroundColor="black"
       width="100%"
       height="100%"
       alignItems="flex-start"

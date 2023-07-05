@@ -20,11 +20,12 @@ export function GrabController({
   filterIntersections,
   id,
   cursorColor = "black",
-  cursorOpacity = 1,
+  cursorOpacity = 0.5,
   cursorPressColor = "white",
-  cursorSize = 0.2,
+  cursorSize = 0.1,
   cursorVisible = true,
   radius = 0.07,
+  cursorOffset = 0.01,
 }: {
   inputSource: XRInputSource;
   children?: ReactNode;
@@ -36,6 +37,7 @@ export function GrabController({
   cursorSize?: number;
   cursorVisible?: boolean;
   radius?: number;
+  cursorOffset?: number;
 }) {
   const colliderRef = useRef<InputDeviceFunctions>(null);
   const distanceRef = useRef(Infinity);
@@ -91,7 +93,7 @@ export function GrabController({
           id={id}
           filterIntersections={filterIntersections}
           onIntersections={(intersections) => {
-            updateCursorTransformation(intersections, cursorRef);
+            updateCursorTransformation(inputSource, intersections, cursorRef, cursorOffset);
             triggerVibration(intersections, inputSource, prevIntersected);
             if (intersections.length === 0) {
               return;
@@ -115,7 +117,13 @@ export function GrabController({
       </SpaceGroup>
 
       {createPortal(
-        <mesh visible={cursorVisible} scale={cursorSize} ref={cursorRef} material={cursorMaterial}>
+        <mesh
+          renderOrder={inputSource.handedness === "left" ? 1 : 2}
+          visible={cursorVisible}
+          scale={cursorSize}
+          ref={cursorRef}
+          material={cursorMaterial}
+        >
           <planeGeometry />
         </mesh>,
         scene,

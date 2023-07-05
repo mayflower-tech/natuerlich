@@ -25,14 +25,15 @@ export function PointerController({
   id,
   cursorColor = "white",
   cursorPressColor = "blue",
-  cursorOpacity = 1,
-  cursorSize = 0.2,
+  cursorOpacity = 0.5,
+  cursorSize = 0.1,
   cursorVisible = true,
   rayColor = "white",
   rayPressColor = "blue",
   rayMaxLength = 1,
   rayVisibile = true,
-  raySize = 0.01,
+  raySize = 0.005,
+  cursorOffset = 0.01,
 }: {
   inputSource: XRInputSource;
   children?: ReactNode;
@@ -48,6 +49,7 @@ export function PointerController({
   rayMaxLength?: number;
   rayVisibile?: boolean;
   raySize?: number;
+  cursorOffset?: number;
 }) {
   const pointerRef = useRef<InputDeviceFunctions>(null);
   const pressedRef = useRef(false);
@@ -106,7 +108,7 @@ export function PointerController({
       <SpaceGroup space={inputSource.targetRaySpace}>
         <XStraightPointer
           onIntersections={(intersections) => {
-            updateCursorTransformation(intersections, cursorRef);
+            updateCursorTransformation(inputSource, intersections, cursorRef, cursorOffset);
             updateRayTransformation(intersections, rayMaxLength, rayRef);
             triggerVibration(intersections, inputSource, prevIntersected);
           }}
@@ -121,12 +123,19 @@ export function PointerController({
           scale-y={raySize}
           material={rayMaterial}
           ref={rayRef}
+          renderOrder={inputSource.handedness === "left" ? 3 : 4}
         >
           <boxGeometry />
         </mesh>
       </SpaceGroup>
       {createPortal(
-        <mesh visible={cursorVisible} scale={cursorSize} ref={cursorRef} material={cursorMaterial}>
+        <mesh
+          renderOrder={inputSource.handedness === "left" ? 1 : 2}
+          visible={cursorVisible}
+          scale={cursorSize}
+          ref={cursorRef}
+          material={cursorMaterial}
+        >
           <planeGeometry />
         </mesh>,
         scene,
