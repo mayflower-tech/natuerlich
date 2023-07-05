@@ -25,6 +25,7 @@ export function GrabHand({
   cursorVisible = true,
   radius = 0.07,
   cursorOffset = 0.01,
+  childrenAtJoint = "wrist",
 }: {
   hand: XRHand;
   inputSource: XRInputSource;
@@ -38,6 +39,7 @@ export function GrabHand({
   cursorVisible?: boolean;
   radius?: number;
   cursorOffset?: number;
+  childrenAtJoint?: XRHandJoint;
 }) {
   const colliderRef = useRef<InputDeviceFunctions>(null);
   const distanceRef = useRef(Infinity);
@@ -106,7 +108,7 @@ export function GrabHand({
               }}
             />
           </HandBoneGroup>
-          {children != null && <HandBoneGroup joint="wrist">{children}</HandBoneGroup>}
+          {children != null && <HandBoneGroup joint={childrenAtJoint}>{children}</HandBoneGroup>}
         </DynamicHandModel>
       </Suspense>
       {createPortal(

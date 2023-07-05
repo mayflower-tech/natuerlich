@@ -124,7 +124,11 @@ export const useXR = create(
       mode: XRSessionMode,
       requestedTrackedImages?: ReadonlyArray<XRTrackedImageInit>,
     ) {
-      if ("getTrackedImageScores" in session) {
+      if (
+        requestedTrackedImages != null &&
+        requestedTrackedImages.length > 0 &&
+        "getTrackedImageScores" in session
+      ) {
         const scores = await (
           session.getTrackedImageScores as () => Promise<ReadonlyArray<XRImageTrackingScore>>
         )();

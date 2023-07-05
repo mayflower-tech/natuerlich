@@ -2,7 +2,12 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Quaternion, Vector3 } from "three";
 import { useXR } from "./index.js";
-import { createAnchor, createPersistedAnchor, getPersistedAnchor } from "../anchor.js";
+import {
+  createAnchor,
+  createPersistedAnchor,
+  deletePersistedAnchor,
+  getPersistedAnchor,
+} from "../anchor.js";
 
 export function usePersistedAnchor(
   key: string,
@@ -29,16 +34,15 @@ export function usePersistedAnchor(
   useFrame((state, delta, frame) => (frameRef.current = frame));
   const createAnchor = useCallback(
     async (worldPosition: Vector3, worldRotation: Quaternion) => {
-      if (frameRef.current == null) {
+      const frame = frameRef.current;
+      if (frame == null) {
         return;
       }
-      const anchor = await createPersistedAnchor(
-        key,
-        xr,
-        frameRef.current,
-        worldPosition,
-        worldRotation,
-      );
+      const session = useXR.getState().session;
+      if (session != null) {
+        deletePersistedAnchor(session, key);
+      }
+      const anchor = await createPersistedAnchor(key, xr, frame, worldPosition, worldRotation);
       if (anchor != null) {
         setAnchor(anchor);
       }

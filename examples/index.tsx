@@ -66,7 +66,7 @@ import { AnchorObject } from "./anchor-object.js";
 import { Box } from "@react-three/drei";
 import {
   KoestlichQuadLayer,
-  DoubleGrab,
+  Grabbable,
   GrabController,
   XRCanvas,
   TouchHand,
@@ -84,8 +84,8 @@ const tableData = [
 ];
 
 const sessionOptions: XRSessionInit = {
-  requiredFeatures: [
-    "local-floor",
+  requiredFeatures: ["local-floor"],
+  optionalFeatures: [
     "hand-tracking",
     "anchors",
     //"layers",
@@ -146,17 +146,17 @@ export default function Index() {
           <Suspense>
             <Koestlich />
           </Suspense>
-          <DoubleGrab>
+          <Grabbable>
             <Box />
-          </DoubleGrab>
+          </Grabbable>
         </KoestlichQuadLayer>
         <IncludeWhenInSessionMode deny="immersive-ar">
           <Background color="red" />
         </IncludeWhenInSessionMode>
         <QuadLayerPortal pixelWidth={1024} pixelHeight={1024} position={[2, 1, 0]}>
-          <DoubleGrab position={[0, 0, -5]}>
+          <Grabbable position={[0, 0, -5]}>
             <Box />
-          </DoubleGrab>
+          </Grabbable>
           <Background color="green" />
         </QuadLayerPortal>
         {/*<DoubleGrabCube />*/}

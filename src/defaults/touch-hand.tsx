@@ -24,6 +24,7 @@ export function TouchHand({
   cursorPressColor = "white",
   cursorOpacity = 0.5,
   cursorOffset = 0.01,
+  childrenAtJoint = "wrist",
 }: {
   hand: XRHand;
   inputSource: XRInputSource;
@@ -38,6 +39,7 @@ export function TouchHand({
   cursorSize?: number;
   cursorVisible?: boolean;
   cursorOffset?: number;
+  childrenAtJoint?: XRHandJoint;
 }) {
   const scene = useThree(({ scene }) => scene);
 
@@ -85,8 +87,8 @@ export function TouchHand({
                 );
               }}
             />
-            {children}
           </HandBoneGroup>
+          {children != null && <HandBoneGroup joint={childrenAtJoint}>{children}</HandBoneGroup>}
         </DynamicHandModel>
       </Suspense>
       {createPortal(

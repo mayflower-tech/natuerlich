@@ -93,14 +93,18 @@ export function XR({
   }, [xrManager, referenceSpace]);
 
   useFrame((_state, _delta, frame: XRFrame | undefined) => {
-    if (frame == null || !("getImageTrackingResults" in frame)) {
-      return;
-    }
-    const trackedImages = useXR.getState().trackedImages;
-    if (trackedImages == null) {
+    const { trackedImages, requestedTrackedImages } = useXR.getState();
+    if (
+      trackedImages == null ||
+      requestedTrackedImages == null ||
+      requestedTrackedImages.length === 0
+    ) {
       return;
     }
     trackedImages.clear();
+    if (frame == null || !("getImageTrackingResults" in frame)) {
+      return;
+    }
     const results = (frame.getImageTrackingResults as () => ReadonlyArray<XRImageTrackingResult>)();
     for (const result of results) {
       trackedImages.set(result.index, result);

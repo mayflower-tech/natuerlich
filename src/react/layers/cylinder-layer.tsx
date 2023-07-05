@@ -177,7 +177,7 @@ export const CylinderLayerPortal = forwardRef<
     renderer.setRenderTarget(prevTarget);
   }, []);
 
-  const eventProps = useMeshForwardEventsFromStore(store, dragDistance);
+  const eventProps = useMeshForwardEventsFromStore(store.getState, dragDistance);
 
   useImperativeHandle(ref, () => eventProps.ref.current!, []);
 

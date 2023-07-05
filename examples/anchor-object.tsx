@@ -2,18 +2,17 @@ import { useRef } from "react";
 import { usePersistedAnchor } from "../dist/react/anchor.js";
 import { Mesh, Vector3 } from "three";
 import { isXIntersection } from "@coconut-xr/xinteraction";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 
 export function AnchorObject() {
   const [anchor, createAnchor] = usePersistedAnchor("drag-cube-anchor");
-  const xr = useThree((state) => state.gl.xr);
   const ref = useRef<Mesh>(null);
-  useFrame((state, delta, frame: XRFrame) => {
+  useFrame((state, _delta, frame: XRFrame) => {
     if (downState.current != null) {
       //we are currently modifying the position by dragging
       return;
     }
-    const referenceSpace = xr.getReferenceSpace();
+    const referenceSpace = state.gl.xr.getReferenceSpace();
     if (anchor == null || ref.current == null || referenceSpace == null || frame == null) {
       return;
     }

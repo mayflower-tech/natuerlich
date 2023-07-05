@@ -50,6 +50,17 @@ export async function createAnchor(
   );
 }
 
+export async function deletePersistedAnchor(session: XRSession, key: string): Promise<undefined> {
+  const anchorId = await localStorage.getItem(key);
+  if (anchorId == null) {
+    return undefined;
+  }
+  if (session == null || !("deletePersistentAnchor" in session)) {
+    return Promise.reject(new Error(`session unavailable or deletePersistentAnchor not available`));
+  }
+  return (session.deletePersistentAnchor as (id: string) => Promise<undefined>)(anchorId);
+}
+
 export async function createPersistedAnchor(
   key: string,
   xr: WebXRManager,

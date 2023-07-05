@@ -9,7 +9,7 @@ const deltaRotation = new Quaternion();
 const initialInputDeviceOffset = new Vector3();
 const currentInputDeviceOffset = new Vector3();
 
-export function DoubleGrab({ children, ...props }: { children?: ReactNode } & GroupProps) {
+export function Grabbable({ children, ...props }: { children?: ReactNode } & GroupProps) {
   const ref = useRef<Group>(null);
 
   const state = useMemo<{

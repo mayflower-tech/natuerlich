@@ -33,6 +33,7 @@ export function PointerHand({
   rayVisibile = true,
   raySize = 0.005,
   cursorOffset = 0.01,
+  childrenAtJoint = "wrist",
 }: {
   hand: XRHand;
   inputSource: XRInputSource;
@@ -50,6 +51,7 @@ export function PointerHand({
   raySize?: number;
   filterIntersections?: (intersections: XIntersection[]) => XIntersection[];
   cursorOffset?: number;
+  childrenAtJoint?: XRHandJoint;
 }) {
   const pointerRef = useRef<InputDeviceFunctions>(null);
   const pressedRef = useRef(false);
@@ -99,7 +101,7 @@ export function PointerHand({
     <>
       <Suspense>
         <DynamicHandModel hand={hand} handedness={inputSource.handedness}>
-          {children != null && <HandBoneGroup joint="wrist">{children}</HandBoneGroup>}
+          {children != null && <HandBoneGroup joint={childrenAtJoint}>{children}</HandBoneGroup>}
         </DynamicHandModel>
       </Suspense>
       <SpaceGroup space={inputSource.targetRaySpace}>
