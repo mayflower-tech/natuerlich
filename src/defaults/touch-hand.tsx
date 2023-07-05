@@ -37,7 +37,7 @@ export function TouchHand({
   cursorOpacity?: number;
   cursorSize?: number;
   cursorVisible?: boolean;
-  cursorOffset: number;
+  cursorOffset?: number;
 }) {
   const scene = useThree(({ scene }) => scene);
 
