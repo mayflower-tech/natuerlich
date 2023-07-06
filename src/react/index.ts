@@ -1,6 +1,6 @@
 import { useFrame, useStore, useThree } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
-import { XRImageTrackingResult, useXR } from "./state.js";
+import { useXR } from "./state.js";
 import { shallow } from "zustand/shallow";
 
 export * from "./use-enter-xr.js";
@@ -92,24 +92,7 @@ export function XR({
     xrManager.setReferenceSpaceType(referenceSpace);
   }, [xrManager, referenceSpace]);
 
-  useFrame((_state, _delta, frame: XRFrame | undefined) => {
-    const { trackedImages, requestedTrackedImages } = useXR.getState();
-    if (
-      trackedImages == null ||
-      requestedTrackedImages == null ||
-      requestedTrackedImages.length === 0
-    ) {
-      return;
-    }
-    trackedImages.clear();
-    if (frame == null || !("getImageTrackingResults" in frame)) {
-      return;
-    }
-    const results = (frame.getImageTrackingResults as () => ReadonlyArray<XRImageTrackingResult>)();
-    for (const result of results) {
-      trackedImages.set(result.index, result);
-    }
-  });
+  useFrame(useXR.getState().onFrame);
 
   return null;
 }

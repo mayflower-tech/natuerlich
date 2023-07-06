@@ -37,6 +37,7 @@ export type XRState = (
       layers: Array<{ index: number; layer: XRLayer }>;
       trackedImages: TrackedImagesMap;
       requestedTrackedImages?: ReadonlyArray<XRTrackedImageInit>;
+      trackedPlanes: ReadonlyArray<XRPlane>;
     }
   | {
       mode: "none";
@@ -46,17 +47,68 @@ export type XRState = (
       layers?: undefined;
       trackedImages?: undefined;
       requestedTrackedImages?: undefined;
+      trackedPlanes?: undefined;
     }
-) & { store?: StoreApi<RootState> };
+) & {
+  store?: StoreApi<RootState>;
+  onNextFrameCallbacks: Set<(state: RootState, delta: number, frame: XRFrame | undefined) => void>;
+};
 
 export type GrabbableEventListener = (inputSourceId: number, target: Object3D) => void;
 
 const initialState = {
   mode: "none",
+  onNextFrameCallbacks: new Set(),
 } as XRState;
 
 export const useXR = create(
   combine(initialState, (set, get) => ({
+    onFrame: (state: RootState, delta: number, frame: XRFrame | undefined) => {
+      const { trackedImages, requestedTrackedImages, trackedPlanes, onNextFrameCallbacks } = get();
+
+      for (const onNextFrameCallback of onNextFrameCallbacks) {
+        onNextFrameCallback(state, delta, frame);
+      }
+      onNextFrameCallbacks.clear();
+
+      //handle tracked planes
+
+      const detectedPlanes = (frame as { detectedPlanes?: XRPlaneSet })?.detectedPlanes;
+      let newPlanes = trackedPlanes;
+
+      if (detectedPlanes == null) {
+        newPlanes = undefined;
+      } else if (trackedPlanes == null || trackedPlanes.length != detectedPlanes.size) {
+        newPlanes = Array.from(detectedPlanes);
+      } else {
+        for (const plane of detectedPlanes) {
+          if (!trackedPlanes.includes(plane)) {
+            newPlanes = Array.from(detectedPlanes);
+            break;
+          }
+        }
+      }
+      if (newPlanes != trackedPlanes) {
+        set({ trackedPlanes: newPlanes });
+      }
+
+      //handle tracked images
+      if (
+        trackedImages != null &&
+        requestedTrackedImages != null &&
+        requestedTrackedImages.length > 0
+      ) {
+        trackedImages.clear();
+        if (frame != null && "getImageTrackingResults" in frame) {
+          const results = (
+            frame.getImageTrackingResults as () => ReadonlyArray<XRImageTrackingResult>
+          )();
+          for (const result of results) {
+            trackedImages.set(result.index, result);
+          }
+        }
+      }
+    },
     setStore(store: StoreApi<RootState>) {
       set({ store });
     },
@@ -111,6 +163,7 @@ export const useXR = create(
         layers: undefined,
         requestedTrackedImages: undefined,
         trackedImages: undefined,
+        trackedPlanes: undefined,
       });
       const { camera } = store.getState();
       //(gl.xr as any).setUserCamera(undefined);
@@ -181,6 +234,7 @@ export const useXR = create(
         trackedImages: new Map(),
         requestedTrackedImages,
         layers: [{ index: 0, layer: gl.xr.getBaseLayer() }],
+        trackedPlanes: [],
       });
       store.setState({ camera: gl.xr.getCamera() });
     },

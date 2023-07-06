@@ -10,7 +10,6 @@ import {
 } from "react";
 import React from "react";
 import {
-  BackSide,
   BufferGeometry,
   CylinderGeometry,
   Mesh,
@@ -113,9 +112,18 @@ export const CylinderLayer = forwardRef<
         }
         const width = radius * centralAngle; //(2 * PI * radius = umfang) * angle / (2 * PI)
         const height = (width * pixelHeight) / pixelWidth;
-        return new CylinderGeometry(radius, radius, height, 32, 1, true, 0, centralAngle).rotateY(
-          Math.PI - centralAngle / 2,
-        );
+        const geometry = new CylinderGeometry(
+          radius,
+          radius,
+          height,
+          32,
+          1,
+          true,
+          0,
+          centralAngle,
+        ).rotateY(Math.PI - centralAngle / 2);
+        geometry.scale(-1, 1, 1);
+        return geometry;
       }, [hasCustomGeometry, radius, centralAngle, pixelHeight, pixelWidth]) ?? customGeometry;
 
     return (
@@ -127,7 +135,6 @@ export const CylinderLayer = forwardRef<
         {...(props as any)}
       >
         <meshBasicMaterial
-          side={BackSide}
           map={texture}
           colorWrite={layer == null}
           transparent={transparent}

@@ -1,5 +1,4 @@
-import { useFrame, useThree } from "@react-three/fiber";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Quaternion, Vector3 } from "three";
 import { useXR } from "./index.js";
 import {
@@ -9,68 +8,92 @@ import {
   getPersistedAnchor,
 } from "../anchor.js";
 
+export function useAnchor(): [
+  anchor: XRAnchor | undefined,
+  createAnchor: (worldPosition: Vector3, worldRotation: Quaternion) => Promise<void>,
+] {
+  const [anchor, setAnchor] = useState<XRAnchor | undefined>(undefined);
+  const destroyed = useRef(false);
+  const create = useCallback(
+    async (worldPosition: Vector3, worldRotation: Quaternion) =>
+      void useXR.getState().onNextFrameCallbacks.add(async (state, _delta, frame) => {
+        if (frame == null || destroyed.current) {
+          return;
+        }
+        const anchor = await createAnchor(state.gl.xr, frame, worldPosition, worldRotation);
+        if (anchor == null || destroyed.current) {
+          return;
+        }
+        setAnchor(anchor);
+      }),
+    [],
+  );
+  useEffect(
+    () => () => {
+      //cleanup => prevents setAnchor
+      destroyed.current = true;
+    },
+    [],
+  );
+  return [anchor, create];
+}
+
 export function usePersistedAnchor(
   key: string,
 ): [
   anchor: XRAnchor | undefined,
   createAnchor: (worldPosition: Vector3, worldRotation: Quaternion) => Promise<void>,
 ] {
-  const xr = useThree((s) => s.gl.xr);
   const session = useXR(({ session }) => session);
   const [anchor, setAnchor] = useState<XRAnchor | undefined>(undefined);
+  const state = useMemo(() => ({ destroyed: false, session, key }), [session, key]);
+
   useEffect(() => {
-    if (session == null) {
-      setAnchor(undefined);
+    setAnchor(undefined);
+    if (state.session == null) {
       return;
     }
-    getPersistedAnchor(session, key)
-      .then(setAnchor)
+    getPersistedAnchor(state.session, state.key)
+      .then((anchor) => {
+        if (state.destroyed) {
+          return;
+        }
+        setAnchor(anchor);
+      })
       .catch((error) => {
+        if (state.destroyed) {
+          return;
+        }
         console.error(error);
         setAnchor(undefined);
       });
-  }, [session, key]);
-  const frameRef = useRef<XRFrame>();
-  useFrame((state, delta, frame) => (frameRef.current = frame));
-  const createAnchor = useCallback(
-    async (worldPosition: Vector3, worldRotation: Quaternion) => {
-      const frame = frameRef.current;
-      if (frame == null) {
-        return;
-      }
-      const session = useXR.getState().session;
-      if (session != null) {
-        deletePersistedAnchor(session, key);
-      }
-      const anchor = await createPersistedAnchor(key, xr, frame, worldPosition, worldRotation);
-      if (anchor != null) {
-        setAnchor(anchor);
-      }
-    },
-    [xr, key],
-  );
-  return [anchor, createAnchor];
-}
+    return () => {
+      state.destroyed = true;
+    };
+  }, [state]);
 
-export function useAnchor(): [
-  anchor: XRAnchor | undefined,
-  createAnchor: (worldPosition: Vector3, worldRotation: Quaternion) => Promise<void>,
-] {
-  const xr = useThree((s) => s.gl.xr);
-  const [anchor, setAnchor] = useState<XRAnchor | undefined>(undefined);
-  const frameRef = useRef<XRFrame>();
-  useFrame((state, delta, frame) => (frameRef.current = frame));
   const create = useCallback(
-    async (worldPosition: Vector3, worldRotation: Quaternion) => {
-      if (frameRef.current == null) {
-        return;
-      }
-      const anchor = await createAnchor(xr, frameRef.current, worldPosition, worldRotation);
-      if (anchor != null) {
+    async (worldPosition: Vector3, worldRotation: Quaternion) =>
+      void useXR.getState().onNextFrameCallbacks.add(async (rootState, _delta, frame) => {
+        if (frame == null || state.session == null || state.destroyed) {
+          return;
+        }
+        //cleanup prev anchor
+        deletePersistedAnchor(state.session, state.key);
+        //make new anchor
+        const anchor = await createPersistedAnchor(
+          state.key,
+          rootState.gl.xr,
+          frame,
+          worldPosition,
+          worldRotation,
+        );
+        if (anchor == null || state.destroyed) {
+          return;
+        }
         setAnchor(anchor);
-      }
-    },
-    [xr],
+      }),
+    [state],
   );
   return [anchor, create];
 }

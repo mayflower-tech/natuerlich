@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import { MeshProps, useFrame } from "@react-three/fiber";
 import React, { useImperativeHandle, useMemo, useRef } from "react";
-import { forwardRef, startTransition, useState } from "react";
+import { forwardRef } from "react";
 import { BufferGeometry, Mesh, Shape, ShapeGeometry, Vector2 } from "three";
 import { useApplySpace } from "./space.js";
 import { useXR } from "./state.js";
@@ -11,28 +11,8 @@ export function useInitRoomCapture(): () => Promise<undefined> | undefined {
   return useMemo(() => (session as any)?.initiateRoomCapture.bind(session), [session]);
 }
 
-export function useTrackedPlanes(): Array<XRPlane> | undefined {
-  const [planes, setPlanes] = useState<Array<XRPlane> | undefined>([]);
-  useFrame((_state, _delta, frame: XRFrame | undefined) => {
-    const newPlanes = (frame as { detectedPlanes?: XRPlaneSet })?.detectedPlanes;
-    startTransition(() =>
-      setPlanes((oldPlanes) => {
-        if (newPlanes == null) {
-          return undefined;
-        }
-        if (oldPlanes == null || oldPlanes.length != newPlanes.size) {
-          return Array.from(newPlanes);
-        }
-        for (const plane of newPlanes) {
-          if (!oldPlanes.includes(plane)) {
-            return Array.from(newPlanes);
-          }
-        }
-        return oldPlanes;
-      }),
-    );
-  });
-  return planes;
+export function useTrackedPlanes(): ReadonlyArray<XRPlane> | undefined {
+  return useXR((state) => state.trackedPlanes);
 }
 
 function createGeometryFromPolygon(polygon: DOMPointReadOnly[]): BufferGeometry {
