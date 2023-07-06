@@ -1,4 +1,4 @@
-import { WebXRManager, Vector3, Quaternion } from "three";
+import { WebXRManager, Vector3, Quaternion, Camera } from "three";
 import { useXR } from "./react/state.js";
 
 export async function getPersistedAnchor(
@@ -17,7 +17,11 @@ export async function getPersistedAnchor(
   return (session.restorePersistentAnchor as (id: string) => Promise<XRAnchor>)(anchorId);
 }
 
+const positonHelper = new Vector3();
+const quaternionHelper = new Quaternion();
+
 export async function createAnchor(
+  camera: Camera,
   xr: WebXRManager,
   frame: XRFrame,
   worldPosition: Vector3,
@@ -32,18 +36,25 @@ export async function createAnchor(
       ),
     );
   }
+  if (camera.parent != null) {
+    camera.parent.getWorldPosition(positonHelper).negate().add(worldPosition);
+    camera.parent.getWorldQuaternion(quaternionHelper).invert().multiply(worldRotation);
+  } else {
+    positonHelper.copy(worldPosition);
+    quaternionHelper.copy(worldRotation);
+  }
   return await frame.createAnchor?.(
     new XRRigidTransform(
       {
-        x: worldPosition.x,
-        y: worldPosition.y,
-        z: worldPosition.z,
+        x: positonHelper.x,
+        y: positonHelper.y,
+        z: positonHelper.z,
       },
       {
-        x: worldRotation.x,
-        y: worldRotation.y,
-        z: worldRotation.z,
-        w: worldRotation.w,
+        x: quaternionHelper.x,
+        y: quaternionHelper.y,
+        z: quaternionHelper.z,
+        w: quaternionHelper.w,
       },
     ),
     referenceSpace,
@@ -63,12 +74,13 @@ export async function deletePersistedAnchor(session: XRSession, key: string): Pr
 
 export async function createPersistedAnchor(
   key: string,
+  camera: Camera,
   xr: WebXRManager,
   frame: XRFrame,
   worldPosition: Vector3,
   worldRotation: Quaternion,
 ): Promise<XRAnchor> {
-  const anchor = await createAnchor(xr, frame, worldPosition, worldRotation);
+  const anchor = await createAnchor(camera, xr, frame, worldPosition, worldRotation);
   if (anchor == null || !("requestPersistentHandle" in anchor)) {
     return Promise.reject(
       new Error(

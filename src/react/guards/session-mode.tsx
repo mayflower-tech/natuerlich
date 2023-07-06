@@ -17,7 +17,7 @@ export function useIsInSessionMode(
   return true;
 }
 
-export function VisibleWhenInSessionMode({
+export function VisibilitySessionModeGuard({
   children,
   allow,
   deny,
@@ -30,7 +30,7 @@ export function VisibleWhenInSessionMode({
   return <group visible={visible}>{children}</group>;
 }
 
-export function IncludeWhenInSessionMode({
+export function SessionModeGuard({
   children,
   allow,
   deny,

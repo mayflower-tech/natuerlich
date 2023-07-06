@@ -122,3 +122,5 @@ export * from "./touch-hand.js";
 export * from "./teleport.js";
 export * from "./koestlich.js";
 export * from "./grabbable.js";
+export * from "./controllers.js";
+export * from "./hands.js";

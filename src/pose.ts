@@ -107,7 +107,7 @@ export function storeHandData(handMatrices: Float32Array, mirror: boolean): Floa
 }
 
 export function getHandPose(path: string, baseUrl: string): Float32Array | undefined {
-  const href = [path, baseUrl].join("/").replace(/(?<!https:)(?<!http:)\/(\/)+/g, "/");
+  const href = [baseUrl, path].join("/").replace(/(?<!https:)(?<!http:)\/(\/)+/g, "/");
   const pose = poseStorage.get(href);
   if (pose != null) {
     return pose;

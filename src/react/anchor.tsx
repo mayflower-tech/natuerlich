@@ -20,7 +20,13 @@ export function useAnchor(): [
         if (frame == null || destroyed.current) {
           return;
         }
-        const anchor = await createAnchor(state.gl.xr, frame, worldPosition, worldRotation);
+        const anchor = await createAnchor(
+          state.camera,
+          state.gl.xr,
+          frame,
+          worldPosition,
+          worldRotation,
+        );
         if (anchor == null || destroyed.current) {
           return;
         }
@@ -83,6 +89,7 @@ export function usePersistedAnchor(
         //make new anchor
         const anchor = await createPersistedAnchor(
           state.key,
+          rootState.camera,
           rootState.gl.xr,
           frame,
           worldPosition,

@@ -19,7 +19,6 @@ import {
   PlaneGeometry,
   QuadraticBezierCurve3,
   Quaternion,
-  Texture,
   Vector3,
 } from "three";
 import { useInputSourceEvent } from "../react/listeners.js";
@@ -30,6 +29,7 @@ import { MeshLineGeometry, MeshLineMaterial } from "meshline";
 import { clamp } from "three/src/math/MathUtils.js";
 import { SpaceGroup } from "../react/space.js";
 import { DynamicControllerModel } from "../react/controller.js";
+import { CursorBasicMaterial } from "./index.js";
 
 function emptyFunction() {
   //nothing to do
@@ -95,11 +95,12 @@ export function TeleportHand({
   children?: ReactNode;
   id: number;
   rayColor?: ColorRepresentation;
+  rayOpacity?: number;
   raySize?: number;
-  cursorTexture?: Texture;
   cursorColor?: ColorRepresentation;
   cursorSize?: number;
-  onTeleport: (point: Vector3) => void;
+  cursorOpacity?: number;
+  onTeleport?: (point: Vector3) => void;
   filterIntersections?: (intersections: any[]) => any[]; //TODO
 }) {
   const groupRef = useRef<Group>(null);
@@ -172,10 +173,11 @@ export function TeleportController({
   id: number;
   rayColor?: ColorRepresentation;
   raySize?: number;
-  cursorTexture?: Texture;
+  rayOpacity?: number;
   cursorColor?: ColorRepresentation;
   cursorSize?: number;
-  onTeleport: (point: Vector3) => void;
+  cursorOpacity?: number;
+  onTeleport?: (point: Vector3) => void;
   filterIntersections?: (intersections: any[]) => any[]; //TODO
 }) {
   const groupRef = useRef<Group>(null);
@@ -260,22 +262,23 @@ export function TeleportPointer({
   filterIntersections: customFilterIntersections,
   id,
   currentIntersectionRef,
-  cursorColor,
-  cursorSize,
-  cursorTexture,
+  cursorColor = "blue",
+  cursorSize = 0.3,
+  cursorOpacity = 1.0,
 }: {
   rayColor?: ColorRepresentation;
+  rayOpacity?: number;
   raySize?: number;
-  filterIntersections?: (intersections: any[]) => any[]; //TODO
+  filterIntersections?: (intersections: any[]) => any[];
   currentIntersectionRef: MutableRefObject<XIntersection | undefined>;
-  cursorTexture?: Texture;
   cursorColor?: ColorRepresentation;
+  cursorOpacity?: number;
   cursorSize?: number;
   id: number;
 }) {
   const cursorRef = useRef<Mesh>(null);
 
-  const material = useMemo(
+  const rayMaterial = useMemo(
     () =>
       new MeshLineMaterial({
         toneMapped: false,
@@ -285,8 +288,15 @@ export function TeleportPointer({
       }),
     [],
   );
-  material.color.set(rayColor ?? "blue");
-  material.lineWidth = raySize ?? 0.01;
+  rayMaterial.color.set(rayColor ?? "blue");
+  rayMaterial.lineWidth = raySize ?? 0.01;
+
+  const cursorMaterial = useMemo(
+    () => new CursorBasicMaterial({ toneMapped: false, transparent: true }),
+    [],
+  );
+  cursorMaterial.color.set(cursorColor);
+  cursorMaterial.opacity = cursorOpacity;
 
   const onIntersections = useCallback(
     (intersections: ReadonlyArray<{ lineIndex: number; distanceOnLine: number }>) => {
@@ -301,7 +311,7 @@ export function TeleportPointer({
       } else {
         currentIntersectionRef.current = undefined;
       }
-      material.visibility = visibility;
+      rayMaterial.visibility = visibility;
       if (cursorRef.current == null) {
         return;
       }
@@ -343,16 +353,14 @@ export function TeleportPointer({
         filterIntersections={filterIntersections}
         id={id}
       />
-      <mesh geometry={rayGeometry} material={material} />
+      <mesh geometry={rayGeometry} material={rayMaterial} />
       {createPortal(
-        <mesh scale={cursorSize ?? 0.3} ref={cursorRef} geometry={cursorGeometry}>
-          <meshBasicMaterial
-            transparent
-            map={cursorTexture}
-            color={cursorColor}
-            toneMapped={false}
-          />
-        </mesh>,
+        <mesh
+          scale={cursorSize}
+          ref={cursorRef}
+          geometry={cursorGeometry}
+          material={cursorMaterial}
+        />,
         scene,
       )}
     </>

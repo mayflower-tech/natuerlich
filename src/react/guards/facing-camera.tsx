@@ -33,7 +33,7 @@ export function useIsFacingCamera(
   });
 }
 
-export function VisibleWhenFacingCamera({
+export function VisibilityFacingCameraGuard({
   children,
   direction,
   angle = Math.PI / 2,
@@ -57,7 +57,7 @@ export function VisibleWhenFacingCamera({
   return <group ref={ref}>{children}</group>;
 }
 
-export function IncludeWhenFacingCamera({
+export function FacingCameraGuard({
   children,
   direction,
   angle = Math.PI / 2,

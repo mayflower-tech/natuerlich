@@ -49,14 +49,14 @@ export function Grabbable({ children, ...props }: { children?: ReactNode } & Gro
         deltaRotation.copy(startRotation).invert().premultiply(currentRotation);
 
         //calculate new position using the offset from the initial intersection point to the object
-        //then rotating this offset by the rotation offset of the input device
+        //then rotating this offset by the rotation offset of the input source
         //and lastly add the initial position of the box
         ref.current.position
           .copy(pointOffsetPosition)
           .applyQuaternion(deltaRotation)
           .add(currentPosition);
 
-        //calculating the new rotation by applying the offset rotation of the input device to the original rotation of the box
+        //calculating the new rotation by applying the offset rotation of the input source to the original rotation of the box
         ref.current.quaternion.copy(deltaRotation).multiply(state.objectRotation); //1. object rotation then add deltaRotation
 
         ref.current.scale.copy(state.objectScale);
@@ -65,7 +65,7 @@ export function Grabbable({ children, ...props }: { children?: ReactNode } & Gro
       case 2: {
         const [i1, i2] = state.intersections.values();
 
-        //initial and current input device offset from 1 to 2
+        //initial and current input source offset from 1 to 2
         initialInputDeviceOffset.copy(i2.startPosition).sub(i1.startPosition);
         currentInputDeviceOffset.copy(i2.currentPosition).sub(i1.currentPosition);
 

@@ -23,7 +23,11 @@ export function useHandPoses(
   const prevPoseName = useRef<string | undefined>();
   const dumbRef = useRef<boolean>(false);
   useFrame((state, _delta, frame: XRFrame | undefined) => {
-    if (frame == null || frame.session.visibilityState != "visible") {
+    if (
+      frame == null ||
+      frame.session.visibilityState === "visible-blurred" ||
+      frame.session.visibilityState === "hidden"
+    ) {
       return;
     }
     const referenceSpace = state.gl.xr.getReferenceSpace();

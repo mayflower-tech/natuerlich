@@ -76,8 +76,12 @@ export const DynamicHandModel = forwardRef<
   const { scene } = useLoader(GLTFLoader, url);
   const clonedScene = useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const motionHand = useMemo(() => createMotionHand(hand, clonedScene), [clonedScene, hand]);
-  useFrame((state, delta, frame) => {
-    if (frame == null || frame.session.visibilityState != "visible") {
+  useFrame((state, delta, frame: XRFrame | undefined) => {
+    if (
+      frame == null ||
+      frame.session.visibilityState === "hidden" ||
+      frame.session.visibilityState === "visible-blurred"
+    ) {
       motionHand.visible = false;
       return;
     }

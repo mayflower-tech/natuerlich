@@ -37,10 +37,15 @@ export const DynamicControllerModel = forwardRef<
     [motionController, clonedScene],
   );
   useFrame((_state, _delta, frame: XRFrame | undefined) => {
-    if (frame == null || frame.session.visibilityState === "visible") {
+    if (
+      frame == null ||
+      frame.session.visibilityState === "hidden" ||
+      frame.session.visibilityState === "visible-blurred"
+    ) {
       clonedScene.visible = false;
       return;
     }
+    clonedScene.visible = true;
     if (inputSource.gamepad != null) {
       updateMotionController(motionController);
     }
