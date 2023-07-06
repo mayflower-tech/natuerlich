@@ -1,8 +1,8 @@
 # Teleport
 
-Basic form of teleportation can be easily implemented by changing the `position` attribute of `ImmersiveSessionOrigin`. However, selecting where to teleport can be a little more tricky, when the interaction should have a downward bend ray. Therefore, **natuerlich** provides the `TeleportController` and `TeleportHand` components that implement a downward bend ray interaction and a cursor visualization. The `TeleportTarget` component is used to mark objects as teleportable.
+A basic form of teleportation can be easily implemented by changing the `position` attribute of `ImmersiveSessionOrigin`. However, selecting where to teleport can be tricky when the interaction should have a downward bend ray originating from the controller/hand. Therefore, **natuerlich** provides the `TeleportController` and `TeleportHand` components that implement a downward bend ray interaction and a cursor visualization. The `TeleportTarget` component is used to mark objects as teleportable.
 
-The following example uses the `TeleportController`, `TeleportHand`, and `TeleportTarget` to build a very simple scene with a flat plane on which the user can teleport. In this case, we are using `useState` from react, but any other state management solution can also be used.
+The following example uses the `TeleportController`, `TeleportHand`, and `TeleportTarget` to build a simple scene with a flat plane on which the user can teleport. In this case, we use `useState` from react, but any other state management solution can also be used.
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-teleport-lmml8p?file=/src/app.tsx)
 

@@ -1,8 +1,8 @@
 # useXR Hook
 
-The `useXR` hook allows retrieve WebXR the current **mode** (`immersive-vr`, `immersive-ar`, `inline`, or `none`), the **session**, the **inputSources**, the active **layers**, and the **trackedImages**.
+The `useXR` hook allows to retrieve the current XR state, including the  **mode** (`immersive-vr`, `immersive-ar`, `inline`, or `none`), the **session**, the **inputSources**, the active **layers**, the **trackedImages**, and the **trackedPlanes**.
 
-The hook allows to listen to any of these values using `useXR(state => state.{property})`. In situations where only the current value is required `useXR.getState().{property}` can be used.
+The hook allows developers to listen to any of these values using `useXR(state => state.{property})`. When only the current value is required, `useXR.getState().{property}` can be used.
 
 For instance, if you have a cube that should only rotate in `AR` mode, you can use `useXR.getState().mode` to determine the current mode inside a `useFrame` hook.
 

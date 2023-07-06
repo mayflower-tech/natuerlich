@@ -1,10 +1,10 @@
 # Tracked Planes
 
-**natuerlich** supports [WebXR Plane Detection Module](https://immersive-web.github.io/real-world-geometry/plane-detection.html) in the form of `TrackedPlane`s. The `useTrackedPlanes` hook allows to retrieve all detected planes. The `TrackedPlane` component takes a single plane and renders the geometry retrieved from the plane. The material of the `TrackedPlane` can be customized using R3F and further content can be placed as its children.
+**natuerlich** supports [WebXR Plane Detection Module](https://immersive-web.github.io/real-world-geometry/plane-detection.html) in the form of `TrackedPlane`s. The `useTrackedPlanes` hook allows to retrieve all detected planes. The `TrackedPlane` component takes a single plane and renders the geometry retrieved from the plane. The material of the `TrackedPlane` can be customized using R3F, and further content can be placed as its children.
 
 #### Important:
 
-The `TrackedPlane` component must be placed inside the `ImmersiveSessionOrigin`, if present. The `useTrackedPlanes` hook must be placed inside the Canvas. Furthermore, the `"plane-detection"` feature must be added to the `sessionOptions` for the [WebXR Plane Detection Module](https://immersive-web.github.io/real-world-geometry/plane-detection.html) to be active if supported by the device.
+The `TrackedPlane` component must be placed inside the `ImmersiveSessionOrigin` if an `ImmersiveSessionOrigin` is present. The `useTrackedPlanes` hook must be placed inside the Canvas. Furthermore, the `"plane-detection"` feature must be added to the `sessionOptions` for the [WebXR Plane Detection Module](https://immersive-web.github.io/real-world-geometry/plane-detection.html) to be active if supported by the device.
 
 ```tsx
 import { XRCanvas } from "@coconut-xr/natuerlich/defaults";

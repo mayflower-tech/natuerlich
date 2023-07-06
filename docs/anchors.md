@@ -1,14 +1,14 @@
 # Anchors
 
-**natuerlich** supports [WebXR Anchors Module](https://immersive-web.github.io/anchors/) with the `useAnchor` and `usePersistedAnchor` hooks. Both hooks return a tuple containg the `anchor` and a `createAnchor` function. If no anchor is yet present, the returned `anchor` is undefined. Once the `createAnchor` function is called, a new anchor is created. If the process was successfull, the returned `anchor` will contain a `XRAnchor`.
+**natuerlich** supports [WebXR Anchors Module](https://immersive-web.github.io/anchors/) with the `useAnchor` and `usePersistedAnchor` hooks. Both hooks return a tuple containing the `anchor` and a `createAnchor` function. If no anchor is present, the returned `anchor` is undefined. A new anchor is created once the `createAnchor` function is called. If the process is successful, the returned `anchor` will contain an `XRAnchor`.
 
 The `XRAnchor` contains the `anchorSpace` property. The `anchorSpace` property can be used to display content at the position of the anchor using the `SpaceGroup` component. The `SpaceGroup` component takes the `space` property and renders all its children at the origin of the provided space.
 
-In the following example, we create a box that can be positioned by pinching anywhere in the scene. Once the user pinched the anchor and therefore the box is set to that position. The anchor is persisted even when restarting the immersive experience.
+In the following example, we create a box that can be positioned by pinching anywhere in the scene. Once the user pinches, the anchor and the box is set to that position. The anchor is persisted even when restarting the immersive experience.
 
 #### Important:
 
-The `SpaceGroup` component must be placed inside the `ImmersiveSessionOrigin`, if present. Furthermore, the `"anchors"` feature must be added to the `sessionOptions` for the [WebXR Anchors Module](https://immersive-web.github.io/anchors/) to be active if supported by the device.
+The `SpaceGroup` component must be placed inside the `ImmersiveSessionOrigin` if a `ImmersiveSessionOrigin` is present. Furthermore, the `"anchors"` feature must be added to the `sessionOptions` for the [WebXR Anchors Module](https://immersive-web.github.io/anchors/) to be active if supported by the device.
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-anchors-8wls7l?file=/src/app.tsx)
 

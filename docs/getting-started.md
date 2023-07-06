@@ -1,18 +1,18 @@
 # Getting Started
 
-In the following tutorials, we will create several WebXR Experiences using **natuerlich** and react-three/fiber. Install the dependencies manually via `npm i @coconut-xr/natuerlich @react-three/fiber react react-dom three zustand three-stdlib` or use the CodeSandbox provided for each example. When developing locally, make sure you host your code using https, which is required for WebXR sessions.
+In the following tutorials, we will create several WebXR Experiences using **natuerlich** and react-three/fiber. Install the dependencies manually via `npm i @coconut-xr/natuerlich @react-three/fiber react react-dom three zustand three-stdlib` or use the CodeSandbox provided for each example. When developing locally, ensure you host your code using HTTPS, which is required for WebXR sessions.
 
-_Make sure that your three.js version is either lower or higher than 0.0.153._
+_Make sure your three.js version is either lower or higher than 0.0.153._
 
 **If you have questions or get stuck, jump into our [Discord](https://discord.gg/NCYM8ujndE).**
 
 ## Bare-bones WebXR Experience
 
-Creating the bare minimum for a WebXR experience using **natuerlich** only requires the `useEnterXR` hook to create a enter button and the `XRCanvas`. The `XRCanvas` allows to configure WebXR features, such as foveation, frameRate, referenceSpace, and frameBufferScaling via corresponding optional properties.
+Creating the bare minimum for a WebXR experience using **natuerlich** only requires the `useEnterXR` hook to create an Enter Button and the `XRCanvas`. The `XRCanvas` allows to configure WebXR features, such as foveation, frameRate, referenceSpace, and frameBufferScaling via corresponding optional properties.
 
-In the following example we additionally use the `NonImmersiveCamera` to control the position of the camera when not in VR/AR. We also use the `ImmersiveSessionOrigin` to control the position of the immersive origin (your feet) in AR/VR.
+In the following example, we additionally use the `NonImmersiveCamera` to control the position of the camera when not in VR/AR. We also use the `ImmersiveSessionOrigin` to control the position of the immersive origin (your feet) in AR/VR.
 
-As a result, in the following example, users are positioned in front of the red cube regardless whether they are in AR/VR or not.
+As a result, in the following example, users are positioned in front of the red cube regardless of whether they are in AR/VR or not.
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-barebones-xmdpvq)
 
@@ -59,9 +59,9 @@ export default function Index() {
 
 Instead of directly using the XRCanvas, the underlying `<XR/>` component can be used to add WebXR support to a scene. The `XR` component allows to change the foveation, frameRate, referenceSpace, and frameBufferScaling.
 
-In addition to adding the `XR`, the event system needs to be overwritten, since **natuerlich** uses [xinteraction](https://github.com/coconut-xr/xinteraction). Therefore, the events inside the canvas need to be disabled via `elements={noEvents}`. To enable interaction using normal mouse and touch controls we are adding the `XWebPointers` from [xinteraction](https://github.com/coconut-xr/xinteraction). The `XRCanvas` automatically applies these changes.
+In addition to adding the `XR`, the event system needs to be overwritten since **natuerlich** uses [xinteraction](https://github.com/coconut-xr/xinteraction). Therefore, the events inside the canvas need to be disabled via `elements={noEvents}`. To enable interaction using normal mouse and touch controls, we are adding the `XWebPointers` from [xinteraction](https://github.com/coconut-xr/xinteraction). The `XRCanvas` automatically applies these changes.
 
-The following code shows how to manually apply add the `XR` component and exhange the event system.
+The following code shows how to manually apply, add the `XR` component and exchange the event system.
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-barebones-manual-dg2q8r)
 
@@ -95,17 +95,17 @@ export default function Index() {
 
 ## Adding Controllers and Hands
 
-**natuerlich** provides the `useInputSources` hook for adding controller and hand support. Each `inputSource` represents one hand or controller. Developers can map each `inputSource` to a custom hand or controller implementation. **natuerlich** provides high and low level components that simplify the creation of custom controllers and hands. For instance, the `GrabHand`, `TouchHand`, `Pointerhand`, `GrabController`, and `PointerController` components provide hands and controllers for the most common interaction types and visualizations. If your use-case requires different interactions or visualizations read our [introduction to custom input devices](./custom-input.md) for more information.
+**natuerlich** provides the `useInputSources` hook for adding controller and hand support. Each `inputSource` represents one hand or controller. Developers can map each `inputSource` to a custom hand or controller implementation. **natuerlich** provides high and low-level components that simplify the creation of custom controllers and hands. For instance, the `GrabHand`, `TouchHand`, `Pointerhand`, `GrabController`, and `PointerController` components provide hands and controllers for the most common interaction types and visualizations. If your use case requires different interactions or visualizations, read our [introduction to custom input devices](./custom-input.md) for more information.
 
-In the following example, we extend the previous code and add the default `PointerHand`s and `PointerController`s to the scene. Using `inputSources.map` we map each controller/hand to its implementation. This allows to provide different implementation based on the `inputSource.handedness`. We can differentiate between hands and controllers based on the existance of the `hand` property on the `inputSource`.
+In the following example, we extend the previous code and add the default `PointerHand`s and `PointerController`s to the scene. Using `inputSources.map`, we map each controller/hand to its implementation. This allows developers to provide different implementations based on the `inputSource.handedness`. We can differentiate between hands and controllers based on the existence of the `hand` property on the `inputSource`.
 
 The following code also shows how to use the maximum available framerate and frameBufferScaling using the `useFramRates` and `useNativeFramebufferScaling` hooks.
-To demonstate interactivity, we also add a `Grabbable` component around the red cube , which allows grabbing the cube and even scaling it using two hands/controllers.
+To demonstrate interactivity, we also add a `Grabbable` component around the red cube, which allows grabbing the cube and even scaling it using two hands/controllers.
 
 #### Important:
 
-All objects that are tracked using WebXR, such as the controllers and hands, need to be placed inside the `ImmersiveSessionOrigin`.
-For using hands inside of a WebXR session, the `"hand-tracking"` feature needs to be requested inside the `sessionOptions`.
+All objects tracked using WebXR, such as the controllers and hands, must be placed inside the `ImmersiveSessionOrigin`.
+For using hands inside a WebXR session, the `"hand-tracking"` feature needs to be requested inside the `sessionOptions`.
 
 _TODO: exchange AR image_
 
@@ -175,7 +175,7 @@ export default function Index() {
 
 ## Next Up
 
-With this bare-bones setup you are ready to use all features **natuerlich** has to offer. The following list contains a unordered list of features and their documentation.
+With this bare-bones setup, you are ready to use all features **natuerlich** has to offer. The following list contains an unordered list of features and their documentation.
 
 - [Interaction with Objects](./object-interaction.md) - build interactions with objects
 - [Interaction with Koestlich](./koestlich-interaction.md) - build interactive 3D UIs

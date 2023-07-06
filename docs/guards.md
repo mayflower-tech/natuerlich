@@ -1,6 +1,6 @@
 # Guards
 
-Guards allow to conditionally display or include content based on the session mode or whether the object is facing the camera of the user. For instance, the `IncludeWhenInSessionMode` guard allows to only display a background when the session is not a AR session.
+Guards allow to conditionally display or include content based on the session mode or whether the object is facing the camera of the user. For instance, the `IncludeWhenInSessionMode` guard allows only displaying a background when the session is not an AR session.
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-guards-xwx9yd?file=/src/app.tsx)
 

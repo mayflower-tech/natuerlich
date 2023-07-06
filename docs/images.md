@@ -1,15 +1,15 @@
 # Tracked Images
 
-The [WebXR Image Tracking](https://github.com/immersive-web/marker-tracking/blob/main/explainer.md) feature allows to track images in Augemented Reality. Tracking images in AR requires the image to be present, including its expected with in meters. The image must be submitted as a `ImageBitmap` when starting the WebXR session. **natuerlich** provides the `TrackedImage` component to display content at the place, where WebXR found the tracked image. The `TrackedImage` component takes the same bitmap provided for the start of the session as the `image` parameter.
+The [WebXR Image Tracking](https://github.com/immersive-web/marker-tracking/blob/main/explainer.md) feature allows tracking images in Augmented Reality. Tracking images in AR requires the image to be present, including its expected width in meters. The image must be submitted as an `ImageBitmap` when starting the WebXR session. **natuerlich** provides the `TrackedImage` component to display content at the place where WebXR found the tracked image. The `TrackedImage` component takes the same bitmap provided for the start of the session as the `image` parameter.
 
-The following example shows how to load a tracked image as a texture, convert the texture to a bitmap, and use the texture to display a plane containing the loaded textzre at the position of the tracked image.
+The following example shows how to load a tracked image as a texture, convert the texture to a bitmap, and use the texture to display a plane containing the loaded texture at the position of the tracked image.
 
 The following image was used for tracking in the [CodeSandbox](https://codesandbox.io/s/natuerlich-images-q6zknf?file=/src/app.tsx).
 ![Image](./tracked-image.jpeg)
 
 #### Important:
 
-The image tracking on WebXR currently only works in Android Chrome. The `TrackedImage` must be placed inside `ImmersiveSessionOrigin`, if present. Furthermore, the `"image-tracking"` feature must be added to the `sessionOptions` for the [WebXR Image Tracking](https://github.com/immersive-web/marker-tracking/blob/main/explainer.md) to be active, if supported by the device.
+The image tracking on WebXR currently only works in Android Chrome. The `TrackedImage` must be placed inside `ImmersiveSessionOrigin` if an `ImmersiveSessionOrigin` is present. Furthermore, the `"image-tracking"` feature must be added to the `sessionOptions` for the [WebXR Image Tracking](https://github.com/immersive-web/marker-tracking/blob/main/explainer.md) to be active if supported by the device.
 
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-images-q6zknf?file=/src/app.tsx)

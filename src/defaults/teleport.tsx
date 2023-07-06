@@ -1,9 +1,8 @@
 import { XIntersection } from "@coconut-xr/xinteraction";
-import { InputDeviceFunctions, XCurvedPointer } from "@coconut-xr/xinteraction/react";
+import { XCurvedPointer } from "@coconut-xr/xinteraction/react";
 import { createPortal, useFrame, useStore, useThree } from "@react-three/fiber";
 import React, {
   MutableRefObject,
-  RefObject,
   Suspense,
   useCallback,
   useEffect,
@@ -24,13 +23,11 @@ import {
   Vector3,
 } from "three";
 import { useInputSourceEvent } from "../react/listeners.js";
-import { DynamicHandModel, HandBoneGroup, getBoneObject } from "../react/hand.js";
+import { DynamicHandModel } from "../react/hand.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import { MeshLineGeometry, MeshLineMaterial } from "meshline";
 import { clamp } from "three/src/math/MathUtils.js";
-import { OculusHandModel } from "three-stdlib/index.js";
-import { isMotionHand } from "../motion-hand.js";
 import { SpaceGroup } from "../react/space.js";
 import { DynamicControllerModel } from "../react/controller.js";
 

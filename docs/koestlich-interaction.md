@@ -1,8 +1,8 @@
 # Interaction with [koestlich](https://github.com/coconut-xr/koestlich)
 
-Building a UI in WebXR can be achieved with [koestlich](https://github.com/coconut-xr/koestlich). **natuerlich** provides out of the box support for interaction with **koestlich**, such as scrolling.
+Building a UI in WebXR can be achieved with [koestlich](https://github.com/coconut-xr/koestlich). **natuerlich** provides out-of-the-box support for interaction with **koestlich**, such as scrolling.
 
-The following example, create a simple UI with koestlich that changes its background color when clicked using a `TouchHand` and `TouchController`.
+The following example creates a simple UI with koestlich that changes its background color when clicked using a `TouchHand` and `TouchController`.
 
 For a more information on how to build 3D UIs visit the [koestlich documentation](https://coconut-xr.github.io/koestlich/#/).
 
@@ -80,7 +80,7 @@ export default function Index() {
 
 ## Binding as Koestlich UI to the Hand / Controller
 
-Binding a interactive UI to the hands of the users can feel very intuitive. The following example shows how to Koestlich UI can be bound to the wrist.
+Binding an interactive UI to the hands of the users can feel very intuitive. The following example shows how a Koestlich UI can be bound to the wrist.
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-koestlich-bound-5qz2z8?file=/src/app.tsx)
 
