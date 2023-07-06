@@ -41,7 +41,9 @@ export const DynamicControllerModel = forwardRef<
       clonedScene.visible = false;
       return;
     }
-    updateMotionController(motionController);
+    if (inputSource.gamepad != null) {
+      updateMotionController(motionController);
+    }
   });
   // eslint-disable-next-line react/no-unknown-property
   return <primitive ref={ref} object={clonedScene} />;

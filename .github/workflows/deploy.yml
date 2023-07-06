@@ -11,14 +11,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Copy README.md to public
+      - name: Copy README.md and images to public
         run: |
           cp README.md public/README.md
-          cp -r images public/images
+#          cp -r images/* public/images
       
       - name: Copy docs to public
         run: |
-          cp -r docs public
+          cp -r docs/* public
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.5
