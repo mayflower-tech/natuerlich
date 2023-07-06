@@ -14,8 +14,6 @@ The image tracking on WebXR currently only works in Android Chrome. The `Tracked
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-images-q6zknf?file=/src/app.tsx)
 
-![Screenshot]()
-
 ```tsx
 import { XRCanvas } from "@coconut-xr/natuerlich/defaults";
 import {
@@ -35,7 +33,10 @@ const createImageBitmapSymbol = Symbol("createImageBitmap")
 
 export default function Index() {
   const texture = useLoader(TextureLoader, "/image.jpg");
-  const bitmap = suspend(createImageBitmap, [createImageBitmapSymbol, texture.image]);
+  const bitmap = suspend((i) => createImageBitmap(i), [
+    texture.image,
+    createImageBitmapSymbol
+  ]);
   const options = useMemo(
     () => ({
       requiredFeatures: ["local-floor", "image-tracking"],

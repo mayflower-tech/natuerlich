@@ -12,7 +12,7 @@ Layers can not be used with `<color attach="background"/>`. Setting a background
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-barebones-forked-94hg4s?file=/src/app.tsx)
 
-![Screenshot]()
+![Screenshot](./layer.gif)
 
 ```tsx
 import { XRCanvas } from "@coconut-xr/natuerlich/defaults";
@@ -65,7 +65,7 @@ The current implementation is inefficient and results in regular lags. The corre
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-layer-portal-2cl3dv?file=/src/app.tsx)
 
-![Screenshot]()
+![Screenshot](./cylinder-layer-portal.gif)
 
 ```tsx
 import {
@@ -141,7 +141,7 @@ The following example code contains a simple UI rendering two texts. The layer i
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-koestlich-layer-portal-8gv5n2?file=/src/app.tsx)
 
-![Screenshot]()
+![Screenshot](./koestlich-layer.gif)
 
 ```tsx
 import { XRCanvas, KoestlichQuadLayer } from "@coconut-xr/natuerlich/defaults";

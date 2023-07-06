@@ -8,7 +8,7 @@ For a more information on how to build 3D UIs visit the [koestlich documentation
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-koestlich-tfpn9v?file=/src/app.tsx)
 
-![Screenshot]()
+![Screenshot](./koestlich-interactable.gif)
 
 ```tsx
 import {
@@ -84,7 +84,7 @@ Binding an interactive UI to the hands of the users can feel very intuitive. The
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-koestlich-bound-5qz2z8?file=/src/app.tsx)
 
-![Screenshot]()
+![Screenshot](./koestlich-bound-to-hand.gif)
 
 ```tsx
 import {

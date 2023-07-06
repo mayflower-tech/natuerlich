@@ -1,7 +1,7 @@
 import { XIntersection } from "@coconut-xr/xinteraction";
 import { InputDeviceFunctions, XSphereCollider } from "@coconut-xr/xinteraction/react";
 import React, { useRef, useMemo, Suspense, ReactNode } from "react";
-import { ColorRepresentation, Mesh } from "three";
+import { ColorRepresentation, Mesh, Event } from "three";
 import { DynamicControllerModel } from "../react/controller.js";
 import { useInputSourceEvent } from "../react/index.js";
 import { SpaceGroup } from "../react/space.js";
@@ -12,7 +12,7 @@ import {
   updateCursorDistanceOpacity,
   triggerVibration,
 } from "./index.js";
-import { createPortal, useThree } from "@react-three/fiber";
+import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
 
 export function GrabController({
   inputSource,
@@ -26,6 +26,7 @@ export function GrabController({
   cursorVisible = true,
   radius = 0.07,
   cursorOffset = 0.01,
+  ...rest
 }: {
   inputSource: XRInputSource;
   children?: ReactNode;
@@ -38,6 +39,9 @@ export function GrabController({
   cursorVisible?: boolean;
   radius?: number;
   cursorOffset?: number;
+  onPointerDownMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  onPointerUpMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  onClickMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
 }) {
   const colliderRef = useRef<InputDeviceFunctions>(null);
   const distanceRef = useRef(Infinity);
@@ -109,6 +113,7 @@ export function GrabController({
           }}
           ref={colliderRef}
           radius={radius}
+          {...rest}
         />
         {children}
         <Suspense fallback={null}>

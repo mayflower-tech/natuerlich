@@ -8,7 +8,7 @@ All interactions built with **natuerlich**  work with hands, controllers, and no
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-object-interaction-lj9lpj?file=/src/app.tsx)
 
-![]()
+![Screenshot](./object-interactable.gif)
 
 ```tsx
 import {
@@ -65,7 +65,7 @@ The example also shows that the dragging interactions work with hands, controlle
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-drag-qc378s?file=/src/app.tsx)
 
-![]()
+![Screenshot](./object-draggable.gif)
 
 ```tsx
 import {

@@ -6,6 +6,10 @@
 
 The `TrackedPlane` component must be placed inside the `ImmersiveSessionOrigin` if an `ImmersiveSessionOrigin` is present. The `useTrackedPlanes` hook must be placed inside the Canvas. Furthermore, the `"plane-detection"` feature must be added to the `sessionOptions` for the [WebXR Plane Detection Module](https://immersive-web.github.io/real-world-geometry/plane-detection.html) to be active if supported by the device.
 
+[CodeSandbox](https://codesandbox.io/s/natuerlich-tracked-planes-lx3l5x?file=/src/app.tsx)
+
+![Screenshot](./tracked-planes.gif)
+
 ```tsx
 import { XRCanvas } from "@coconut-xr/natuerlich/defaults";
 import {

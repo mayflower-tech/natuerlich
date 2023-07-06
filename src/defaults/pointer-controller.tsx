@@ -5,7 +5,7 @@ import { XIntersection } from "@coconut-xr/xinteraction";
 import React from "react";
 import { SpaceGroup } from "../react/space.js";
 import { DynamicControllerModel } from "../react/controller.js";
-import { ColorRepresentation, Mesh, Vector3 } from "three";
+import { ColorRepresentation, Mesh, Event, Vector3 } from "three";
 import {
   CursorBasicMaterial,
   RayBasicMaterial,
@@ -14,7 +14,7 @@ import {
   updateCursorTransformation,
   updateRayTransformation,
 } from "./index.js";
-import { createPortal, useThree } from "@react-three/fiber";
+import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
 
 const negZAxis = new Vector3(0, 0, -1);
 
@@ -34,6 +34,7 @@ export function PointerController({
   rayVisibile = true,
   raySize = 0.005,
   cursorOffset = 0.01,
+  ...rest
 }: {
   inputSource: XRInputSource;
   children?: ReactNode;
@@ -50,6 +51,9 @@ export function PointerController({
   rayVisibile?: boolean;
   raySize?: number;
   cursorOffset?: number;
+  onPointerDownMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  onPointerUpMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  onClickMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
 }) {
   const pointerRef = useRef<InputDeviceFunctions>(null);
   const pressedRef = useRef(false);
@@ -116,6 +120,7 @@ export function PointerController({
           direction={negZAxis}
           ref={pointerRef}
           filterIntersections={filterIntersections}
+          {...rest}
         />
         <mesh
           visible={rayVisibile}

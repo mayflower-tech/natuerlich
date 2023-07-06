@@ -3,14 +3,14 @@ import { InputDeviceFunctions, XSphereCollider } from "@coconut-xr/xinteraction/
 import React, { ReactNode, Suspense, useMemo, useRef } from "react";
 import { DynamicHandModel, HandBoneGroup } from "../react/hand.js";
 import { useInputSourceEvent } from "../react/listeners.js";
-import { ColorRepresentation, Mesh } from "three";
+import { ColorRepresentation, Event, Mesh } from "three";
 import {
   CursorBasicMaterial,
   updateColor,
   updateCursorDistanceOpacity,
   updateCursorTransformation,
 } from "./index.js";
-import { createPortal, useThree } from "@react-three/fiber";
+import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
 
 export function GrabHand({
   hand,
@@ -26,6 +26,7 @@ export function GrabHand({
   radius = 0.07,
   cursorOffset = 0.01,
   childrenAtJoint = "wrist",
+  ...rest
 }: {
   hand: XRHand;
   inputSource: XRInputSource;
@@ -40,6 +41,9 @@ export function GrabHand({
   radius?: number;
   cursorOffset?: number;
   childrenAtJoint?: XRHandJoint;
+  onPointerDownMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  onPointerUpMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  onClickMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
 }) {
   const colliderRef = useRef<InputDeviceFunctions>(null);
   const distanceRef = useRef(Infinity);
@@ -106,6 +110,7 @@ export function GrabHand({
                   cursorOpacity,
                 );
               }}
+              {...rest}
             />
           </HandBoneGroup>
           {children != null && <HandBoneGroup joint={childrenAtJoint}>{children}</HandBoneGroup>}

@@ -4,7 +4,9 @@
 
 For detecting hand poses, **natuerlich** offers the `useHandPoses` hook. The hook takes the `inputSource.hand`, the `inputSource.handedness`, and a callback called every frame with the current and previous detected pose. The callback is followed by the poses that the algorithm should detect. The parameter maps the URL where the pose information can be found to its name. The last parameter of the hook is optional and contains the `baseUrl` for the URLs of the poses.
 
-The `useHandPoses` hook returns a function that allows downloading the current hand pose to a binary file. This file can then be used to match the recorded pose.
+**natuerlich** provides the default poses `fist, flat, horns, l, peace, point, relax, shaka, and thumb`.
+
+The `useHandPoses` hook returns a function that allows downloading the current hand pose to a binary file. This file can then be used to match the recorded pose. New poses can be created using own implementation or directly inside the [coconut-xr/pose-booth](https://github.com/coconut-xr/pose-booth).
 
 The following code illustrates how to use the `useHandPoses` hook. 
 

@@ -9,13 +9,15 @@ import {
 
 /**
  * @returns a function to download the current hand pose (left and right)
+ * the poses fist, flat, horns, l, peace, point, relax, shaka, and thumb are provided by default
+ * use in poseUrlMap as { pose: "{pose}.handpose" }
  */
 export function useHandPoses(
   hand: XRHand,
   handedness: XRHandedness,
   onPose: (name: string, prevName: string | undefined, offsetToOtherPoses: number) => void,
   poseUrlMap: Record<string, string>,
-  baseUrl = "/",
+  baseUrl = "https://coconut-xr.github.io/natuerlich/poses/",
 ): () => void {
   const handMatrices = useMemo(() => new Float32Array(hand.size * 16), [hand.size]);
   const prevPoseName = useRef<string | undefined>();

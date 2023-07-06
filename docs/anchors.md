@@ -15,15 +15,21 @@ The `SpaceGroup` component must be placed inside the `ImmersiveSessionOrigin` if
 ![Screenshot]()
 
 ```tsx
-import { XRCanvas } from "@coconut-xr/natuerlich/defaults";
+import {
+  XRCanvas,
+  GrabController,
+  GrabHand
+} from "@coconut-xr/natuerlich/defaults";
 import {
   useEnterXR,
   NonImmersiveCamera,
   ImmersiveSessionOrigin,
   SpaceGroup,
-  usePersistedAnchor
+  usePersistedAnchor,
+  useInputSources
 } from "@coconut-xr/natuerlich/react";
 import { Quaternion } from "three";
+import { getInputSourceId } from "@coconut-xr/natuerlich";
 
 const sessionOptions: XRSessionInit = {
   requiredFeatures: ["local-floor", "anchors"]
@@ -32,12 +38,13 @@ const sessionOptions: XRSessionInit = {
 export default function Index() {
   const [anchor, createAnchor] = usePersistedAnchor("test-anchor");
   const enterAR = useEnterXR("immersive-ar", sessionOptions);
+  const inputSources = useInputSources();
   return (
     <div
       style={{...}}
     >
       <button onClick={enterAR}>Enter AR</button>
-      <XRCanvas onClickMissed={(e) => createAnchor(e.point, new Quaternion())}>
+      <XRCanvas>
         <NonImmersiveCamera position={[0, 1.5, 4]} />
         <ImmersiveSessionOrigin position={[0, 0, 4]}>
           {anchor != null && (
@@ -48,12 +55,29 @@ export default function Index() {
               </mesh>
             </SpaceGroup>
           )}
+          {inputSources.map((inputSource) =>
+            inputSource.hand != null ? (
+              <GrabHand
+                id={getInputSourceId(inputSource)}
+                key={getInputSourceId(inputSource)}
+                inputSource={inputSource}
+                hand={inputSource.hand}
+                onClickMissed={(e) => createAnchor(e.point, new Quaternion())}
+              />
+            ) : (
+              <GrabController
+                id={getInputSourceId(inputSource)}
+                key={getInputSourceId(inputSource)}
+                inputSource={inputSource}
+                onClickMissed={(e) => createAnchor(e.point, new Quaternion())}
+              />
+            )
+          )}
         </ImmersiveSessionOrigin>
       </XRCanvas>
     </div>
   );
 }
-
 ```
 
 ---

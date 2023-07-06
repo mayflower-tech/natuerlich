@@ -2,8 +2,8 @@ import { XIntersection } from "@coconut-xr/xinteraction";
 import { XSphereCollider } from "@coconut-xr/xinteraction/react";
 import React, { ReactNode, Suspense, useMemo, useRef } from "react";
 import { DynamicHandModel, HandBoneGroup } from "../react/hand.js";
-import { createPortal, useThree } from "@react-three/fiber";
-import { Color, ColorRepresentation, Mesh } from "three";
+import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
+import { Color, ColorRepresentation, Mesh, Event } from "three";
 import {
   CursorBasicMaterial,
   updateCursorDistanceOpacity,
@@ -25,6 +25,7 @@ export function TouchHand({
   cursorOpacity = 0.5,
   cursorOffset = 0.01,
   childrenAtJoint = "wrist",
+  ...rest
 }: {
   hand: XRHand;
   inputSource: XRInputSource;
@@ -40,6 +41,9 @@ export function TouchHand({
   cursorVisible?: boolean;
   cursorOffset?: number;
   childrenAtJoint?: XRHandJoint;
+  onPointerDownMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  onPointerUpMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  onClickMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
 }) {
   const scene = useThree(({ scene }) => scene);
 
@@ -86,6 +90,7 @@ export function TouchHand({
                   pressRadius,
                 );
               }}
+              {...rest}
             />
           </HandBoneGroup>
           {children != null && <HandBoneGroup joint={childrenAtJoint}>{children}</HandBoneGroup>}

@@ -111,7 +111,7 @@ _TODO: exchange AR image_
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-hands-controllers-wthf4v?file=/src/app.tsx)
 
-![Hands and Controllers](./hands-controllers.png)
+![Hands and Controllers](./hand-and-controllers.gif)
 
 ```tsx
 import {

@@ -4,7 +4,7 @@ import React, { ReactNode, Suspense, useRef, useMemo } from "react";
 import { DynamicHandModel, HandBoneGroup } from "../react/hand.js";
 import { useInputSourceEvent } from "../react/listeners.js";
 import { SpaceGroup } from "../react/space.js";
-import { ColorRepresentation, Mesh, Vector3 } from "three";
+import { ColorRepresentation, Mesh, Vector3, Event } from "three";
 import {
   CursorBasicMaterial,
   RayBasicMaterial,
@@ -12,7 +12,7 @@ import {
   updateCursorTransformation,
   updateRayTransformation,
 } from "./index.js";
-import { createPortal, useThree } from "@react-three/fiber";
+import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
 
 const negZAxis = new Vector3(0, 0, -1);
 
@@ -34,6 +34,7 @@ export function PointerHand({
   raySize = 0.005,
   cursorOffset = 0.01,
   childrenAtJoint = "wrist",
+  ...rest
 }: {
   hand: XRHand;
   inputSource: XRInputSource;
@@ -52,6 +53,9 @@ export function PointerHand({
   filterIntersections?: (intersections: XIntersection[]) => XIntersection[];
   cursorOffset?: number;
   childrenAtJoint?: XRHandJoint;
+  onPointerDownMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  onPointerUpMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  onClickMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
 }) {
   const pointerRef = useRef<InputDeviceFunctions>(null);
   const pressedRef = useRef(false);
@@ -114,6 +118,7 @@ export function PointerHand({
           filterIntersections={filterIntersections}
           id={id}
           ref={pointerRef}
+          {...rest}
         />
         <mesh
           visible={rayVisibile}

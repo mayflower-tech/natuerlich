@@ -6,7 +6,7 @@ The following example uses the `TeleportController`, `TeleportHand`, and `Telepo
 
 [CodeSandbox](https://codesandbox.io/s/natuerlich-teleport-lmml8p?file=/src/app.tsx)
 
-![Screenshot]()
+![Screenshot](./teleport.gif)
 
 ```tsx
 import {
