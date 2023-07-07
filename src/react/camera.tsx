@@ -7,6 +7,9 @@ import { useXR } from "./state.js";
 
 const manualCameraProp = { manual: true } as any;
 
+/**
+ * component to position and rotate the camera when not in immersive mode
+ */
 export const NonImmersiveCamera = forwardRef<PerspectiveCamera, PerspectiveCameraProps>(
   (props, ref) => {
     const store = useStore();

@@ -61,6 +61,10 @@ const initialState = {
   onNextFrameCallbacks: new Set(),
 } as XRState;
 
+/**
+ * allow to subscribe to the current xr state
+ * allows to retrieve the current state via useXR.getState()
+ */
 export const useXR = create(
   combine(initialState, (set, get) => ({
     onFrame: (state: RootState, delta: number, frame: XRFrame | undefined) => {

@@ -65,12 +65,12 @@ We provide bindings to [react-three/fiber](https://github.com/pmndrs/react-three
 
 - [Custom Input Sources](https://coconut-xr.github.io/natuerlich/#/custom-input) - building custom interactive hands and controllers
 
-    <img src="./docs/custom-hand.gif"  width="150">
+    <img src="./docs/fist-grab-hand.gif"  width="150">
 
 - [Tracked Images](https://coconut-xr.github.io/natuerlich/#/images) - image marker tracking using WebXR Image Tracking
 - [Guards](https://coconut-xr.github.io/natuerlich/#/guards) - conditional rendering using guards
 - [Use XR](https://coconut-xr.github.io/natuerlich/#/use-xr) - accessing the raw XR state
-- [Configuration](https://coconut-xr.github.io/natuerlich/#/configuration) - setting frameRate, frameBufferScaling, referenceSpace, and foveation
+- [Configuration](https://coconut-xr.github.io/natuerlich/#/configuration) - configurating foveation, frameRate, referenceSpace, and frameBufferScaling
 ---
 
 - [All Components](https://coconut-xr.github.io/natuerlich/#/all-components) - API Documentation for all available components

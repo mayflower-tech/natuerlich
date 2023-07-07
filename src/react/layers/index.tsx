@@ -44,6 +44,13 @@ export function writeContentToLayer(
   );
 }
 
+/**
+ * hook to create and manage layers
+ * @param createLayer the function to create the layer via WebXR
+ * @param transparent wether the layer should be transparent
+ * @param index the order of the layer in regards to all other layers
+ * @returns the created layer
+ */
 export function useLayer<T extends XRQuadLayer | XRCylinderLayer>(
   createLayer: (binding: XRWebGLBinding, space: XRSpace) => T,
   transparent: boolean,
@@ -91,6 +98,18 @@ const quaternionHelper = new Quaternion();
 const scaleHelper = new Vector3();
 const matrixHelper = new Matrix4();
 
+/**
+ * function to update the contents and transformation of a layer
+ * @param ref the object that is bound to the layer
+ * @param layer the layer to update
+ * @param texture the texture to update the layer with (optional)
+ * @param transparent
+ * @param width
+ * @param height
+ * @param updateLayerSize function to update the webxr layer based on a scale
+ * @param updateTarget function to update the layer content for dynamic content (optional)
+ * @returns either the passed texture or a texture form the render target for dynamic content
+ */
 export function useLayerUpdate<T extends XRQuadLayer | XRCylinderLayer>(
   ref: RefObject<Mesh>,
   layer: T | undefined,

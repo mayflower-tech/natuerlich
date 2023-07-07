@@ -5,6 +5,9 @@ import { Group } from "three";
 import { useXR } from "./state.js";
 import { applySpace } from "./space.js";
 
+/**
+ * component for positioning content (children) at the position of a tracked webxr image
+ */
 export const TrackedImage = forwardRef<Group, { image: ImageBitmap } & GroupProps>(
   ({ image, children, ...props }, ref) => {
     const internalRef = useRef<Group>(null);

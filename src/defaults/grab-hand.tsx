@@ -12,6 +12,10 @@ import {
 } from "./index.js";
 import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
 
+/**
+ * hand for grabbing objects when the pinch gesture is detected
+ * includes hover effects
+ */
 export function GrabHand({
   hand,
   inputSource,

@@ -6,11 +6,17 @@ import { BufferGeometry, Mesh, Shape, ShapeGeometry, Vector2 } from "three";
 import { useApplySpace } from "./space.js";
 import { useXR } from "./state.js";
 
-export function useInitRoomCapture(): () => Promise<undefined> | undefined {
+/**
+ * @returns a function to trigger the room setup for webxr tracked planes
+ */
+export function useInitRoomCapture(): (() => Promise<undefined>) | undefined {
   const session = useXR(({ session }) => session);
   return useMemo(() => (session as any)?.initiateRoomCapture.bind(session), [session]);
 }
 
+/**
+ * @returns the planes that are currently tracked by webxr
+ */
 export function useTrackedPlanes(): ReadonlyArray<XRPlane> | undefined {
   return useXR((state) => state.trackedPlanes);
 }
@@ -23,6 +29,9 @@ function createGeometryFromPolygon(polygon: DOMPointReadOnly[]): BufferGeometry 
   return geometry;
 }
 
+/**
+ * component for positioning content (children) at the position of a tracked webxr plane
+ */
 export const TrackedPlane = forwardRef<Mesh, { plane: XRPlane } & MeshProps>(
   ({ plane, children, ...props }, ref) => {
     const lastUpdateRef = useRef<number | undefined>(undefined);

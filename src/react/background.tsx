@@ -8,6 +8,9 @@ const screenQuadGeometry = new BufferGeometry();
 const vertices = new Float32Array([-1, -1, 3, -1, -1, 3]);
 screenQuadGeometry.setAttribute("position", new BufferAttribute(vertices, 2));
 
+/**
+ * component to set a background color in a scene
+ */
 export function Background({ color }: { color: ColorRepresentation }) {
   const camera = useThree(({ camera }) => camera);
   return createPortal(

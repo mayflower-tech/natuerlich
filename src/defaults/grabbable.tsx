@@ -9,6 +9,9 @@ const deltaRotation = new Quaternion();
 const initialInputDeviceOffset = new Vector3();
 const currentInputDeviceOffset = new Vector3();
 
+/**
+ * component to make objects (its children) grabbable by one or two input sources (hands, controller, mouses, or via touch)
+ */
 export function Grabbable({ children, ...props }: { children?: ReactNode } & GroupProps) {
   const ref = useRef<Group>(null);
 

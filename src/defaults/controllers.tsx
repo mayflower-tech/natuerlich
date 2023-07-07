@@ -8,6 +8,9 @@ import { ThreeEvent } from "@react-three/fiber";
 
 export type ControllerType = "pointer" | "grab" | "teleport";
 
+/**
+ * default controllers of either type "pointer", "grab", or "teleport"
+ */
 export function Controllers({
   type = "pointer",
   ...props

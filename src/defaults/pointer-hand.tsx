@@ -16,6 +16,10 @@ import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
 
 const negZAxis = new Vector3(0, 0, -1);
 
+/**
+ * hand for pointing objects when the pinch gesture is detected
+ * includes a cursor and ray visualization
+ */
 export function PointerHand({
   hand,
   inputSource,

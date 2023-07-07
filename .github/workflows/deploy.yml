@@ -13,6 +13,8 @@ jobs:
 
       - name: Copy README.md and images to public
         run: |
+# replace ./docs/ with ./
+          sed -i 's/\.\/docs\//.//' README.md
           cp README.md public/README.md
 #          cp -r images/* public/images
       

@@ -3,6 +3,9 @@ import { Canvas, CanvasProps } from "@react-three/fiber";
 import React, { ComponentProps } from "react";
 import { XR, XRProps } from "../react/index.js";
 
+/**
+ * basic component for creating a webxr scene
+ */
 export function XRCanvas({
   foveation,
   frameRate,

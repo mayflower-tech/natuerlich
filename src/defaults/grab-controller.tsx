@@ -14,6 +14,10 @@ import {
 } from "./index.js";
 import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
 
+/**
+ * controller for grabbing objects when the squeeze button is pressed
+ * includes hover effects
+ */
 export function GrabController({
   inputSource,
   children,

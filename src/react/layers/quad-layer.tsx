@@ -123,6 +123,10 @@ function updateLayerScale(layer: XRQuadLayer, scale: Vector3) {
   layer.height = scale.y / 2;
 }
 
+/**
+ * quad layer that renders its content in the best possible resolution
+ * requires "anchor" feature flag
+ */
 export const QuadLayerPortal = forwardRef<
   Object3D,
   Omit<ComponentPropsWithoutRef<typeof QuadLayer>, "updateTarget" | "texture"> & {

@@ -149,6 +149,10 @@ function updateLayerScale(radius: number, layer: XRCylinderLayer, scale: Vector3
   layer.radius = scale.x * radius;
 }
 
+/**
+ * cylindric layer that renders its content in the best possible resolution
+ * requires "anchor" feature flag
+ */
 export const CylinderLayerPortal = forwardRef<
   Object3D,
   Omit<ComponentPropsWithoutRef<typeof CylinderLayer>, "updateTarget" | "texture"> & {

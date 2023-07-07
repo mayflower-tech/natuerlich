@@ -33,6 +33,9 @@ export function useIsFacingCamera(
   });
 }
 
+/**
+ * guard that detects if the camera is faced and makes content visible based on the provided angle
+ */
 export function VisibilityFacingCameraGuard({
   children,
   direction,
@@ -57,6 +60,9 @@ export function VisibilityFacingCameraGuard({
   return <group ref={ref}>{children}</group>;
 }
 
+/**
+ * guard that detects if the camera is faced and includes content based on the provided angle
+ */
 export function FacingCameraGuard({
   children,
   direction,

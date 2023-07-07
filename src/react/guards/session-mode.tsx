@@ -17,6 +17,9 @@ export function useIsInSessionMode(
   return true;
 }
 
+/**
+ * guard that only makes its content visible based on denied or allowed session modes
+ */
 export function VisibilitySessionModeGuard({
   children,
   allow,
@@ -30,6 +33,9 @@ export function VisibilitySessionModeGuard({
   return <group visible={visible}>{children}</group>;
 }
 
+/**
+ * guard that only includes content based on denied or allowed session modes
+ */
 export function SessionModeGuard({
   children,
   allow,

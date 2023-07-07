@@ -10,6 +10,10 @@ import {
   updateCursorTransformation,
 } from "./index.js";
 
+/**
+ * hand for touch objects based on their distance to the index finger
+ * includes a cursor visualization that gets more visible based on the distance
+ */
 export function TouchHand({
   hand,
   inputSource,

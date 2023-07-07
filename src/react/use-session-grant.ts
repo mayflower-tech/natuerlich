@@ -1,13 +1,17 @@
 import { useEffect } from "react";
 import { useXR } from "./index.js";
 
+/**
+ * enters the described webxr session
+ * @param options required and optional webxr features and trackedImages
+ */
 export function useSessionGrant(
   options?:
     | (XRSessionInit & {
         trackedImages?: Array<{ image: ImageBitmap; widthInMeters: number }>;
       })
     | undefined,
-) {
+): void {
   useEffect(() => {
     const xrSystem = navigator.xr;
     if (xrSystem == null) {

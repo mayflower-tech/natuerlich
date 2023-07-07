@@ -21,12 +21,18 @@ export * from "./image.js";
 export * from "./background.js";
 export * from "./pose.js";
 
+/**
+ * @returns the native frame buffer scaling
+ */
 export function useNativeFramebufferScaling(): number | undefined {
   return useXR((state) =>
     state.session == null ? undefined : XRWebGLLayer.getNativeFramebufferScaleFactor(state.session),
   );
 }
 
+/**
+ * @returns a array of possible frame rates
+ */
 export function useAvailableFrameRates(): Float32Array | undefined {
   return useXR(
     (state) => (state.session == null ? undefined : state.session.supportedFrameRates),
@@ -34,6 +40,9 @@ export function useAvailableFrameRates(): Float32Array | undefined {
   );
 }
 
+/**
+ * @returns the highest available framerate
+ */
 export function useHeighestAvailableFrameRate(): number | undefined {
   const framerates = useAvailableFrameRates();
   return useMemo(() => {
@@ -52,7 +61,9 @@ export type XRProps = {
 };
 
 /**
+ * component for adding webxr support to a scene
  * must be positioned somewhere inside the canvas
+ * only one XR component can be present in a scene
  */
 export function XR({
   foveation = 0,

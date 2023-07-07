@@ -11,6 +11,10 @@ import {
 } from "../motion-hand.js";
 import { Group, Object3D } from "three";
 
+/**
+ * component for positioning content at a specific joint
+ * needs to be placed inside a `DynamicHandModel` component
+ */
 export const HandBoneGroup = forwardRef<
   Group,
   {
@@ -62,6 +66,9 @@ export function getBoneObject(motionHand: MotionHand, joint: XRHandJoint) {
   return bone;
 }
 
+/**
+ * component for rendering a hand that is animated based on the joints in the hand
+ */
 export const DynamicHandModel = forwardRef<
   Object3D,
   {

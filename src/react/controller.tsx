@@ -16,6 +16,9 @@ import {
 
 const createMotionControllerSymbol = Symbol("createMotionController");
 
+/**
+ * render a the detected controller model and animates pressed buttons and other input elements
+ */
 export const DynamicControllerModel = forwardRef<
   Group,
   {
@@ -56,6 +59,9 @@ export const DynamicControllerModel = forwardRef<
 
 const fetchControllerProfileSymbol = Symbol("fetchControllerProfile");
 
+/**
+ * render a the detected controller model
+ */
 export const StaticControllerModel = forwardRef<
   Group,
   {

@@ -1,6 +1,6 @@
 import { XIntersection } from "@coconut-xr/xinteraction";
 import { XCurvedPointer } from "@coconut-xr/xinteraction/react";
-import { createPortal, useFrame, useStore, useThree } from "@react-three/fiber";
+import { GroupProps, createPortal, useFrame, useStore, useThree } from "@react-three/fiber";
 import React, {
   MutableRefObject,
   Suspense,
@@ -60,7 +60,10 @@ const UP = new Vector3(0, 1, 0);
 const offsetHelper = new Vector3();
 const quaternionHelper = new Quaternion();
 
-export function TeleportTarget({ children }: { children?: ReactNode }) {
+/**
+ * marks its children as teleportable
+ */
+export function TeleportTarget({ children, ...props }: { children?: ReactNode } & GroupProps) {
   const ref = useRef<Group>(null);
   useEffect(() => {
     if (ref.current == null) {
@@ -69,7 +72,7 @@ export function TeleportTarget({ children }: { children?: ReactNode }) {
     ref.current.traverse((object) => (object.userData.teleportTarget = true));
   }, []);
   return (
-    <group onPointerDown={emptyFunction} ref={ref}>
+    <group {...props} onPointerDown={emptyFunction} ref={ref}>
       {children}
     </group>
   );
@@ -77,12 +80,17 @@ export function TeleportTarget({ children }: { children?: ReactNode }) {
 
 const eulerHelper = new Euler(0, 0, 0, "YXZ");
 
-function isTeleportTarget(intersection: XIntersection): boolean {
+export function isTeleportTarget(intersection: XIntersection): boolean {
   return intersection.object.userData.teleportTarget === true;
 }
 
 const positionHelper = new Vector3();
 
+/**
+ * hand for pointing to teleportable objects
+ * is activated when the pinch gesture is detected
+ * includes a cursor and a downward bend ray visualization
+ */
 export function TeleportHand({
   hand,
   inputSource,
@@ -162,6 +170,11 @@ export function TeleportHand({
   );
 }
 
+/**
+ * controller for pointing to teleportable objects
+ * is activated when the pinch gesture is detected
+ * includes a cursor and a downward bend ray visualization
+ */
 export function TeleportController({
   inputSource,
   children,

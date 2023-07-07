@@ -8,6 +8,9 @@ import { ThreeEvent } from "@react-three/fiber";
 
 export type HandType = "pointer" | "grab" | "teleport" | "touch";
 
+/**
+ * default hands of either type "pointer", "grab", "teleport", or "touch"
+ */
 export function Hands({
   type = "pointer",
   ...props

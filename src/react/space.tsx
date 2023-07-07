@@ -5,7 +5,11 @@ import { useImperativeHandle } from "react";
 import { Group, Object3D } from "three";
 
 /**
- * requires matrixAutoUpdate=false on the ref target
+ * hook to apply the transformation of a space onto an object
+ * requires matrixAutoUpdate=false on the object
+ * @param ref a reference to the object
+ * @param space
+ * @param onFrame callback executed every frame with the object to retrieve its worldMatrix f.e.
  */
 export function useApplySpace(
   ref: RefObject<Object3D>,
@@ -16,7 +20,7 @@ export function useApplySpace(
     frame: XRFrame | undefined,
     object: Object3D,
   ) => void,
-) {
+): void {
   useFrame((rootState, delta, frame: XRFrame | undefined) => {
     const group = ref.current;
     if (group == null) {
@@ -50,6 +54,10 @@ export function applySpace(
   object.matrix.fromArray(pose.transform.matrix);
 }
 
+/**
+ * component for positioning content (children) at the position of a tracked webxr space
+ * the onFrame property allows to retrieve the object and its current matrixWorld transformation for every frame
+ */
 export const SpaceGroup = forwardRef<
   Group,
   {

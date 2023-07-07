@@ -18,6 +18,10 @@ import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
 
 const negZAxis = new Vector3(0, 0, -1);
 
+/**
+ * controller for pointing objects when the select button is pressed
+ * includes a cursor and ray visualization
+ */
 export function PointerController({
   inputSource,
   children,
