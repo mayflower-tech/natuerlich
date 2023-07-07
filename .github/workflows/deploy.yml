@@ -15,7 +15,7 @@ jobs:
         run: |
           sed -i 's+./docs/+./+g' README.md
           cp README.md public/README.md
-#          cp -r images/* public/images
+          cp -r images/* public/images
       
       - name: Copy docs to public
         run: |
