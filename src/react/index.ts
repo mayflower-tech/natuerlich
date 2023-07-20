@@ -1,5 +1,5 @@
 import { useFrame, useStore, useThree } from "@react-three/fiber";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useXR } from "./state.js";
 import { shallow } from "zustand/shallow";
 
@@ -20,6 +20,41 @@ export * from "./plane.js";
 export * from "./image.js";
 export * from "./background.js";
 export * from "./pose.js";
+
+/**
+ * hook to determine if a xr mode is supported
+ * @param mode the xr mode to request for support
+ * @returns undefined while requesting support and a boolean once the support state is clear
+ */
+export function useSessionSupported(mode: XRSessionMode): boolean | undefined {
+  const [subscribe, getSnapshot] = useMemo(() => {
+    let sessionSupported: boolean | undefined = undefined;
+    return [
+      (onChange: () => void) => {
+        let canceled = false;
+        if (navigator.xr == null) {
+          sessionSupported = false;
+          return () => {
+            //nothing to do
+          };
+        }
+
+        navigator.xr.isSessionSupported(mode).then((isSupported) => {
+          sessionSupported = isSupported;
+          if (canceled) {
+            return;
+          }
+          onChange();
+        });
+        return () => {
+          canceled = true;
+        };
+      },
+      () => sessionSupported,
+    ];
+  }, [mode]);
+  return useSyncExternalStore(subscribe, getSnapshot);
+}
 
 /**
  * @returns the native frame buffer scaling

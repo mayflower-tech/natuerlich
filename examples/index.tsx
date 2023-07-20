@@ -18,10 +18,11 @@ import {
   NonImmersiveCamera,
   useTrackedPlanes,
   TrackedPlane,
-  IncludeWhenInSessionMode,
+  SessionModeGuard,
   useHandPoses,
   Background,
   QuadLayerPortal,
+  useSessionSupported,
 } from "@coconut-xr/natuerlich/react";
 import { BoxGeometry, PlaneGeometry, TextureLoader, Vector3 } from "three";
 import {
@@ -102,11 +103,13 @@ export default function Index() {
   const enterVR = useEnterXR("immersive-vr", sessionOptions);
   const frameBufferScaling = useNativeFramebufferScaling();
   const frameRate = useHeighestAvailableFrameRate();
+  const supportsAr = useSessionSupported("immersive-ar");
+  const supportsVr = useSessionSupported("immersive-vr");
   return (
     <>
       <div style={{ zIndex: 1, position: "absolute", top: 0, left: 0 }}>
-        <button onClick={() => enterAR()}>AR</button>
-        <button onClick={() => enterVR()}>VR</button>
+        {supportsAr && <button onClick={() => enterAR()}>AR</button>}
+        {supportsVr && <button onClick={() => enterVR()}>VR</button>}
         <button onClick={() => ref.current?.()}>Capture</button>
       </div>
       <XRCanvas
@@ -150,9 +153,9 @@ export default function Index() {
             <Box />
           </Grabbable>
         </KoestlichQuadLayer>
-        <IncludeWhenInSessionMode deny="immersive-ar">
+        <SessionModeGuard deny="immersive-ar">
           <Background color="red" />
-        </IncludeWhenInSessionMode>
+        </SessionModeGuard>
         <QuadLayerPortal pixelWidth={1024} pixelHeight={1024} position={[2, 1, 0]}>
           <Grabbable position={[0, 0, -5]}>
             <Box />
