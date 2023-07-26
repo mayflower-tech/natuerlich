@@ -140,12 +140,7 @@ export default function Index() {
         <Suspense>
           <CylinderLayerTexture />
         </Suspense>
-        <KoestlichQuadLayer
-          contentScale={300}
-          pixelWidth={1024}
-          pixelHeight={1024}
-          position={[-2, 1, 0]}
-        >
+        <KoestlichQuadLayer pixelWidth={512} pixelHeight={512} position={[-2, 1, 0]}>
           <Suspense>
             <Koestlich />
           </Suspense>
@@ -394,8 +389,8 @@ function Controller({ inputSource }: { inputSource: XRInputSource }) {
       {inputSource.gripSpace != null && (
         <SpaceGroup space={inputSource.gripSpace}>
           {inputSource.handedness === "left" ? (
-            <RootContainer height={3} width={3}>
-              <Koestlich scale={0.05} />
+            <RootContainer sizeX={3} sizeY={3}>
+              <Koestlich />
             </RootContainer>
           ) : (
             <XSphereCollider
@@ -433,7 +428,7 @@ function Koestlich() {
 
   return (
     <Container
-      backgroundColor="black"
+      backgroundColor="white"
       width="100%"
       height="100%"
       alignItems="flex-start"
@@ -441,24 +436,20 @@ function Koestlich() {
       overflow="scroll"
       flexDirection="column"
     >
-      <Text fontSize={0.2}>Button</Text>
+      <Text>Button</Text>
       <Button onClick={() => setChecked((checked) => !checked)}>Toggle Checked</Button>
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Checkbox
-      </Text>
+      <Text marginTop={0.2}>Checkbox</Text>
       <Container
         alignItems="center"
         flexDirection="row"
         onClick={() => setChecked((checked) => !checked)}
       >
-        <Checkbox marginRight={0.02} checked={checked} />
+        <Checkbox marginRight={32} checked={checked} />
         <Text>Checked</Text>
       </Container>
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Toggle
-      </Text>
+      <Text marginTop={32}>Toggle</Text>
       <Container
         alignItems="center"
         flexDirection="row"
@@ -468,39 +459,31 @@ function Koestlich() {
         <Text>Checked</Text>
       </Container>
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Dropdown
-      </Text>
+      <Text marginTop={32}>Dropdown</Text>
       <Dropdown>
         <Button onClick={() => setChecked((checked) => !checked)}>Toggle Dropdown</Button>
         <DropdownContent
-          border={0.003}
+          border={2}
           borderColor="black"
           borderOpacity={0.5}
-          padding={0.015}
+          padding={4}
           open={checked}
         >
           <Text>Dropdown Content</Text>
         </DropdownContent>
       </Dropdown>
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Slider
-      </Text>
+      <Text marginTop={32}>Slider</Text>
       <Slider value={sliderValue} range={10} onChange={setSliderValue} />
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Select
-      </Text>
+      <Text marginTop={32}>Select</Text>
       <Select
         value={activeTab}
         options={new Array(3).fill(null).map((_, i) => ({ value: i, label: `Option ${i + 1}` }))}
         onChange={setActiveTab}
       />
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Radio
-      </Text>
+      <Text marginTop={32}>Radio</Text>
       <Container gapRow={0.1} alignItems="center" flexDirection="column">
         {new Array(3).fill(null).map((_, i) => (
           <Container
@@ -515,9 +498,7 @@ function Koestlich() {
         ))}
       </Container>
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Tabs
-      </Text>
+      <Text marginTop={32}>Tabs</Text>
       <Tabs width="100%">
         {new Array(3).fill(null).map((_, i) => (
           <Tab key={i} onClick={() => setActiveTab(i)} active={i === activeTab}>{`Tab ${
@@ -526,9 +507,7 @@ function Koestlich() {
         ))}
       </Tabs>
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Table
-      </Text>
+      <Text marginTop={32}>Table</Text>
       <Table>
         {tableData.map((rowData, rowIndex) => (
           <TableRow key={rowIndex}>
@@ -540,9 +519,7 @@ function Koestlich() {
           </TableRow>
         ))}
       </Table>
-      <Text fontSize={0.2} marginTop={0.2}>
-        Link
-      </Text>
+      <Text marginTop={32}>Link</Text>
       <Container flexDirection="row">
         <Text>Find our Website </Text>
         <Link href="https://coconut-xr.com" target="_blank">
@@ -550,9 +527,7 @@ function Koestlich() {
         </Link>
       </Container>
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Steps
-      </Text>
+      <Text marginTop={32}>Steps</Text>
       <Steps maxWidth={4}>
         <StepNumbers>
           <StepNumber>1</StepNumber>
@@ -571,9 +546,7 @@ function Koestlich() {
         </StepTitles>
       </Steps>
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Icons
-      </Text>
+      <Text marginTop={32}>Icons</Text>
       <Container flexWrap="wrap" flexDirection="row" gapColumn={0.1}>
         <Plus />
         <Play />
@@ -582,9 +555,7 @@ function Koestlich() {
         <MagnifyingGlass />
       </Container>
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Pagination
-      </Text>
+      <Text marginTop={32}>Pagination</Text>
       <Container flexDirection="row">
         <Button>1</Button>
         <Button backgroundColor="gray">2</Button>
@@ -592,9 +563,7 @@ function Koestlich() {
         <Button backgroundColor="gray">4</Button>
       </Container>
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Navbar
-      </Text>
+      <Text marginTop={32}>Navbar</Text>
 
       <Container
         width="100%"
@@ -603,22 +572,18 @@ function Koestlich() {
         flexDirection="row"
         justifyContent="space-between"
         alignItems="center"
-        paddingY={0.06}
-        paddingX={0.1}
-        gapColumn={0.1}
+        paddingY={8}
+        paddingX={4}
+        gapColumn={16}
       >
-        <Bars3 height={0.05} color="white" />
-        <Text color="white" fontSize={0.1}>
-          COCONUT-XR
-        </Text>
+        <Bars3 height={2} color="white" />
+        <Text color="white">COCONUT-XR</Text>
         <Container flexGrow={1} />
         <MagnifyingGlass color="white" />
         <Plus color="white" />
       </Container>
 
-      <Text fontSize={0.2} marginTop={0.2}>
-        Progress
-      </Text>
+      <Text marginTop={32}>Progress</Text>
       <Progess value={0.5} />
     </Container>
   );

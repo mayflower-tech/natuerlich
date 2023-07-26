@@ -20,25 +20,22 @@ export const KoestlichQuadLayer = forwardRef<
   Omit<ComponentPropsWithoutRef<typeof QuadLayer>, "updateTarget" | "texture"> & {
     far?: number;
     near?: number;
-    contentScale?: number;
     precision?: number;
   }
->(({ children, far, near, precision = 0.1, contentScale = 1, ...props }, ref) => {
+>(({ children, far, near, precision, ...props }, ref) => {
   return (
     <QuadLayerPortal {...props} ref={ref}>
       <KoestlichFullscreenCamera
         width={props.pixelWidth}
         height={props.pixelHeight}
-        zoom={contentScale}
         far={far}
         near={near}
       />
       <RootContainer
-        anchorX="center"
-        anchorY="center"
-        width={props.pixelWidth / contentScale}
-        height={props.pixelHeight / contentScale}
-        precision={precision / contentScale}
+        sizeX={props.pixelWidth}
+        sizeY={props.pixelHeight}
+        pixelSize={1}
+        precision={precision}
       >
         {children}
       </RootContainer>
