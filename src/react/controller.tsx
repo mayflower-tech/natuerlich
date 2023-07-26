@@ -3,7 +3,7 @@ import { useLoader, useFrame } from "@react-three/fiber";
 import React, { useMemo, forwardRef, useEffect } from "react";
 import { suspend } from "suspend-react";
 import { Group } from "three";
-import { GLTF, GLTFLoader } from "three-stdlib/index.js";
+import { GLTF, GLTFLoader } from "three-stdlib/loaders/GLTFLoader.js";
 import {
   XRInputSourceData,
   fetchControllerProfile,

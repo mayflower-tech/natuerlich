@@ -1,7 +1,9 @@
 /* eslint-disable react/display-name */
 import { useLoader, useFrame } from "@react-three/fiber";
 import React, { ReactNode, forwardRef, useMemo, useRef, useImperativeHandle } from "react";
-import { OculusHandModel, GLTFLoader, SkeletonUtils } from "three-stdlib/index.js";
+import { GLTFLoader } from "three-stdlib/loaders/GLTFLoader.js";
+import { SkeletonUtils } from "three-stdlib/utils/SkeletonUtils.js";
+import { OculusHandModel } from "three-stdlib/webxr/OculusHandModel.js";
 import {
   getMotionHandModelUrl,
   createMotionHand,
