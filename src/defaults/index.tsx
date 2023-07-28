@@ -1,14 +1,28 @@
+/* eslint-disable react/display-name */
 import { XIntersection } from "@coconut-xr/xinteraction";
-import { MutableRefObject, RefObject } from "react";
 import {
+  MutableRefObject,
+  RefObject,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "react";
+import {
+  AudioLoader,
   Color,
   ColorRepresentation,
   MeshBasicMaterial,
   Object3D,
   Quaternion,
   Vector3,
+  AudioListener,
+  PositionalAudio as PositionalAudioImpl,
 } from "three";
 import { makeCursorMaterial, makeFadeMaterial } from "@coconut-xr/xmaterials";
+import { useLoader, useThree } from "@react-three/fiber";
+import React from "react";
 
 //shared materials
 
@@ -112,6 +126,31 @@ export function updateCursorDistanceOpacity(
   );
   material.opacity = transition * cursorOpacity;
 }
+
+export const PositionalAudio = forwardRef<PositionalAudioImpl, { volume: number; url: string }>(
+  ({ volume, url }, ref) => {
+    const buffer = useLoader(AudioLoader, url);
+
+    useImperativeHandle(ref, () => internalRef.current!, []);
+
+    const internalRef = useRef<PositionalAudioImpl>(null);
+    const { camera } = useThree();
+    const listener = useMemo(() => new AudioListener(), []);
+    useEffect(() => {
+      if (internalRef.current == null) {
+        return;
+      }
+      internalRef.current.setBuffer(buffer);
+      internalRef.current.setRefDistance(1);
+      internalRef.current.setLoop(false);
+      camera.add(listener);
+      return () => void camera.remove(listener);
+    }, [buffer, camera, listener]);
+    useEffect(() => void internalRef.current?.setVolume(volume));
+
+    return <positionalAudio ref={internalRef} args={[listener]} />;
+  },
+);
 
 export * from "./canvas.js";
 export * from "./grab-controller.js";

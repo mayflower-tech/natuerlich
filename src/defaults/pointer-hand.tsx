@@ -4,9 +4,16 @@ import React, { ReactNode, Suspense, useRef, useMemo } from "react";
 import { DynamicHandModel, HandBoneGroup } from "../react/hand.js";
 import { useInputSourceEvent } from "../react/listeners.js";
 import { SpaceGroup } from "../react/space.js";
-import { ColorRepresentation, Mesh, Vector3, Event } from "three";
+import {
+  ColorRepresentation,
+  Mesh,
+  Vector3,
+  Event,
+  PositionalAudio as PositionalAudioImpl,
+} from "three";
 import {
   CursorBasicMaterial,
+  PositionalAudio,
   RayBasicMaterial,
   updateColor,
   updateCursorTransformation,
@@ -38,6 +45,8 @@ export function PointerHand({
   raySize = 0.005,
   cursorOffset = 0.01,
   childrenAtJoint = "wrist",
+  pressSoundUrl = "https://coconut-xr.github.io/xsounds/plop.mp3",
+  pressSoundVolume = 0.3,
   ...rest
 }: {
   hand: XRHand;
@@ -60,7 +69,11 @@ export function PointerHand({
   onPointerDownMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
   onPointerUpMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
   onClickMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  pressSoundUrl?: string;
+  pressSoundVolume?: number;
 }) {
+  const sound = useRef<PositionalAudioImpl>(null);
+
   const pointerRef = useRef<InputDeviceFunctions>(null);
   const pressedRef = useRef(false);
   const cursorRef = useRef<Mesh>(null);
@@ -84,6 +97,9 @@ export function PointerHand({
     "selectstart",
     inputSource,
     (e) => {
+      if (cursorRef.current?.visible && sound.current != null) {
+        sound.current.play();
+      }
       pressedRef.current = true;
       updateColor(pressedRef.current, rayMaterial, rayColor, rayPressColor);
       updateColor(pressedRef.current, cursorMaterial, cursorColor, cursorPressColor);
@@ -115,8 +131,12 @@ export function PointerHand({
       <SpaceGroup space={inputSource.targetRaySpace}>
         <XStraightPointer
           onIntersections={(intersections) => {
-            updateCursorTransformation(inputSource, intersections, cursorRef, cursorOffset);
-            updateRayTransformation(intersections, rayMaxLength, rayRef);
+            if (cursorVisible) {
+              updateCursorTransformation(inputSource, intersections, cursorRef, cursorOffset);
+            }
+            if (rayVisibile) {
+              updateRayTransformation(intersections, rayMaxLength, rayRef);
+            }
           }}
           direction={negZAxis}
           filterIntersections={filterIntersections}
@@ -143,6 +163,9 @@ export function PointerHand({
           ref={cursorRef}
           material={cursorMaterial}
         >
+          <Suspense>
+            <PositionalAudio url={pressSoundUrl} volume={pressSoundVolume} ref={sound} />
+          </Suspense>
           <planeGeometry />
         </mesh>,
         scene,

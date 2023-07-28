@@ -3,12 +3,13 @@ import { InputDeviceFunctions, XSphereCollider } from "@coconut-xr/xinteraction/
 import React, { ReactNode, Suspense, useMemo, useRef } from "react";
 import { DynamicHandModel, HandBoneGroup } from "../react/hand.js";
 import { useInputSourceEvent } from "../react/listeners.js";
-import { ColorRepresentation, Event, Mesh } from "three";
+import { ColorRepresentation, Event, Mesh, PositionalAudio as PositionalAudioImpl } from "three";
 import {
   CursorBasicMaterial,
   updateColor,
   updateCursorDistanceOpacity,
   updateCursorTransformation,
+  PositionalAudio,
 } from "./index.js";
 import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
 
@@ -30,6 +31,8 @@ export function GrabHand({
   radius = 0.07,
   cursorOffset = 0.01,
   childrenAtJoint = "wrist",
+  pressSoundUrl = "https://coconut-xr.github.io/xsounds/plop.mp3",
+  pressSoundVolume = 0.3,
   ...rest
 }: {
   hand: XRHand;
@@ -48,7 +51,11 @@ export function GrabHand({
   onPointerDownMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
   onPointerUpMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
   onClickMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  pressSoundUrl?: string;
+  pressSoundVolume?: number;
 }) {
+  const sound = useRef<PositionalAudioImpl>(null);
+
   const colliderRef = useRef<InputDeviceFunctions>(null);
   const distanceRef = useRef(Infinity);
   const pressedRef = useRef(false);
@@ -62,6 +69,9 @@ export function GrabHand({
     "selectstart",
     inputSource,
     (e) => {
+      if (cursorRef.current?.visible && sound.current != null) {
+        sound.current.play();
+      }
       pressedRef.current = true;
       updateColor(pressedRef.current, cursorMaterial, cursorColor, cursorPressColor);
       colliderRef.current?.press(0, e);
@@ -128,6 +138,9 @@ export function GrabHand({
           ref={cursorRef}
           material={cursorMaterial}
         >
+          <Suspense>
+            <PositionalAudio url={pressSoundUrl} volume={pressSoundVolume} ref={sound} />
+          </Suspense>
           <planeGeometry />
         </mesh>,
         scene,

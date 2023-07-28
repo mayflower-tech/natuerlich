@@ -20,6 +20,7 @@ import {
   QuadraticBezierCurve3,
   Quaternion,
   Vector3,
+  PositionalAudio as PositionalAudioImpl,
 } from "three";
 import { useInputSourceEvent } from "../react/listeners.js";
 import { DynamicHandModel } from "../react/hand.js";
@@ -29,7 +30,7 @@ import { MeshLineGeometry, MeshLineMaterial } from "meshline";
 import { clamp } from "three/src/math/MathUtils.js";
 import { SpaceGroup } from "../react/space.js";
 import { DynamicControllerModel } from "../react/controller.js";
-import { CursorBasicMaterial } from "./index.js";
+import { CursorBasicMaterial, PositionalAudio } from "./index.js";
 
 function emptyFunction() {
   //nothing to do
@@ -96,6 +97,8 @@ export function TeleportHand({
   inputSource,
   children,
   onTeleport,
+  teleportSoundUrl = "https://coconut-xr.github.io/xsounds/plop.mp3",
+  teleportSoundVolume = 0.3,
   ...pointerProps
 }: {
   hand: XRHand;
@@ -110,7 +113,11 @@ export function TeleportHand({
   cursorOpacity?: number;
   onTeleport?: (point: Vector3) => void;
   filterIntersections?: (intersections: any[]) => any[]; //TODO
+  teleportSoundUrl?: string;
+  teleportSoundVolume?: number;
 }) {
+  const sound = useRef<PositionalAudioImpl>(null);
+
   const groupRef = useRef<Group>(null);
   const handRef = useRef<Group>(null);
   const currentIntersectionRef = useRef<XIntersection>();
@@ -126,6 +133,9 @@ export function TeleportHand({
     "selectend",
     inputSource,
     () => {
+      if (sound.current != null) {
+        sound.current.play();
+      }
       if (currentIntersectionRef.current != null) {
         store.getState().camera.getWorldPosition(positionHelper);
         positionHelper
@@ -162,6 +172,9 @@ export function TeleportHand({
         </DynamicHandModel>
       </Suspense>
       <group ref={groupRef}>
+        <Suspense>
+          <PositionalAudio url={teleportSoundUrl} volume={teleportSoundVolume} ref={sound} />
+        </Suspense>
         {show && (
           <TeleportPointer {...pointerProps} currentIntersectionRef={currentIntersectionRef} />
         )}
@@ -179,6 +192,8 @@ export function TeleportController({
   inputSource,
   children,
   onTeleport,
+  teleportSoundUrl = "https://coconut-xr.github.io/xsounds/plop.mp3",
+  teleportSoundVolume = 0.3,
   ...pointerProps
 }: {
   inputSource: XRInputSource;
@@ -192,7 +207,11 @@ export function TeleportController({
   cursorOpacity?: number;
   onTeleport?: (point: Vector3) => void;
   filterIntersections?: (intersections: any[]) => any[]; //TODO
+  teleportSoundUrl?: string;
+  teleportSoundVolume?: number;
 }) {
+  const sound = useRef<PositionalAudioImpl>(null);
+
   const groupRef = useRef<Group>(null);
   const currentIntersectionRef = useRef<XIntersection>();
   const teleportRef = useRef(onTeleport);
@@ -207,6 +226,9 @@ export function TeleportController({
     "selectend",
     inputSource,
     () => {
+      if (sound.current != null) {
+        sound.current.play();
+      }
       if (currentIntersectionRef.current != null) {
         store.getState().camera.getWorldPosition(positionHelper);
         positionHelper
@@ -261,6 +283,9 @@ export function TeleportController({
         </SpaceGroup>
       )}
       <group rotation-order="YXZ" ref={groupRef}>
+        <Suspense>
+          <PositionalAudio url={teleportSoundUrl} volume={teleportSoundVolume} ref={sound} />
+        </Suspense>
         {show && (
           <TeleportPointer {...pointerProps} currentIntersectionRef={currentIntersectionRef} />
         )}

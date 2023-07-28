@@ -1,6 +1,6 @@
 {
   "name": "@coconut-xr/natuerlich",
-  "version": "0.0.22",
+  "version": "0.0.24",
   "main": "dist/index.js",
   "repository": {
     "type": "git",

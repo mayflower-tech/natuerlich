@@ -3,11 +3,18 @@ import { XSphereCollider } from "@coconut-xr/xinteraction/react";
 import React, { ReactNode, Suspense, useMemo, useRef } from "react";
 import { DynamicHandModel, HandBoneGroup } from "../react/hand.js";
 import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
-import { Color, ColorRepresentation, Mesh, Event } from "three";
+import {
+  Color,
+  ColorRepresentation,
+  Mesh,
+  Event,
+  PositionalAudio as PositionalAudioImpl,
+} from "three";
 import {
   CursorBasicMaterial,
   updateCursorDistanceOpacity,
   updateCursorTransformation,
+  PositionalAudio,
 } from "./index.js";
 
 /**
@@ -29,6 +36,8 @@ export function TouchHand({
   cursorOpacity = 0.5,
   cursorOffset = 0.01,
   childrenAtJoint = "wrist",
+  pressSoundUrl = "https://coconut-xr.github.io/xsounds/plop.mp3",
+  pressSoundVolume = 0.3,
   ...rest
 }: {
   hand: XRHand;
@@ -48,22 +57,29 @@ export function TouchHand({
   onPointerDownMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
   onPointerUpMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
   onClickMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  pressSoundUrl?: string;
+  pressSoundVolume?: number;
 }) {
+  const sound = useRef<PositionalAudioImpl>(null);
+
   const scene = useThree(({ scene }) => scene);
 
   const distanceRef = useRef(Infinity);
+  const wasPressedRef = useRef(false);
 
   const cursorRef = useRef<Mesh>(null);
   const cursorMaterial = useMemo(
     () => new CursorBasicMaterial({ transparent: true, toneMapped: false }),
     [],
   );
-  updateCursorAppearance(
+  wasPressedRef.current = updateCursorAppearance(
     distanceRef.current,
     cursorMaterial,
     cursorColor,
     cursorPressColor,
     cursorOpacity,
+    wasPressedRef.current,
+    () => sound.current?.play(),
     hoverRadius,
     pressRadius,
   );
@@ -84,12 +100,14 @@ export function TouchHand({
                   return;
                 }
                 distanceRef.current = intersections[0].distance;
-                updateCursorAppearance(
+                wasPressedRef.current = updateCursorAppearance(
                   distanceRef.current,
                   cursorMaterial,
                   cursorColor,
                   cursorPressColor,
                   cursorOpacity,
+                  wasPressedRef.current,
+                  () => sound.current?.play(),
                   hoverRadius,
                   pressRadius,
                 );
@@ -108,6 +126,9 @@ export function TouchHand({
           ref={cursorRef}
           material={cursorMaterial}
         >
+          <Suspense>
+            <PositionalAudio url={pressSoundUrl} volume={pressSoundVolume} ref={sound} />
+          </Suspense>
           <planeGeometry />
         </mesh>,
         scene,
@@ -122,14 +143,20 @@ function updateCursorAppearance(
   cursorColor: ColorRepresentation,
   cursorPressColor: ColorRepresentation,
   cursorOpacity: number,
+  wasPressed: boolean,
+  onPress: () => void,
   hoverRadius: number,
   pressRadius?: number,
-): void {
-  if (pressRadius == null || distance < pressRadius) {
+): boolean {
+  if (pressRadius != null && distance < pressRadius) {
     material.color.set(cursorPressColor);
     material.opacity = cursorOpacity;
-    return;
+    if (!wasPressed) {
+      onPress();
+    }
+    return true;
   }
-  updateCursorDistanceOpacity(material, distance, pressRadius, hoverRadius, cursorOpacity);
+  updateCursorDistanceOpacity(material, distance, pressRadius ?? 0, hoverRadius, cursorOpacity);
   material.color.set(cursorColor);
+  return false;
 }

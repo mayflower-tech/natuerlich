@@ -232,7 +232,7 @@ function InputSources({
             inputSource={inputSource}
             key={getInputSourceId(inputSource)}
           />*/
-          <PointerHand
+          <TouchHand
             key={getInputSourceId(inputSource)}
             inputSource={inputSource}
             hand={inputSource.hand}

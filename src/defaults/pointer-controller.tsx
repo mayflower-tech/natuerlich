@@ -5,7 +5,13 @@ import { XIntersection } from "@coconut-xr/xinteraction";
 import React from "react";
 import { SpaceGroup } from "../react/space.js";
 import { DynamicControllerModel } from "../react/controller.js";
-import { ColorRepresentation, Mesh, Event, Vector3 } from "three";
+import {
+  ColorRepresentation,
+  Mesh,
+  Event,
+  Vector3,
+  PositionalAudio as PositionalAudioImpl,
+} from "three";
 import {
   CursorBasicMaterial,
   RayBasicMaterial,
@@ -13,6 +19,7 @@ import {
   updateColor as updatePointerColor,
   updateCursorTransformation,
   updateRayTransformation,
+  PositionalAudio,
 } from "./index.js";
 import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
 
@@ -38,6 +45,8 @@ export function PointerController({
   rayVisibile = true,
   raySize = 0.005,
   cursorOffset = 0.01,
+  pressSoundUrl = "https://coconut-xr.github.io/xsounds/plop.mp3",
+  pressSoundVolume = 0.3,
   ...rest
 }: {
   inputSource: XRInputSource;
@@ -58,7 +67,11 @@ export function PointerController({
   onPointerDownMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
   onPointerUpMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
   onClickMissed?: ((event: ThreeEvent<Event>) => void) | undefined;
+  pressSoundUrl?: string;
+  pressSoundVolume?: number;
 }) {
+  const sound = useRef<PositionalAudioImpl>(null);
+
   const pointerRef = useRef<InputDeviceFunctions>(null);
   const pressedRef = useRef(false);
   const cursorRef = useRef<Mesh>(null);
@@ -82,6 +95,9 @@ export function PointerController({
     "selectstart",
     inputSource,
     (e) => {
+      if (cursorRef.current?.visible && sound.current != null) {
+        sound.current.play();
+      }
       pressedRef.current = true;
       updatePointerColor(pressedRef.current, cursorMaterial, cursorColor, cursorPressColor);
       updatePointerColor(pressedRef.current, rayMaterial, rayColor, rayPressColor);
@@ -145,6 +161,9 @@ export function PointerController({
           ref={cursorRef}
           material={cursorMaterial}
         >
+          <Suspense>
+            <PositionalAudio url={pressSoundUrl} volume={pressSoundVolume} ref={sound} />
+          </Suspense>
           <planeGeometry />
         </mesh>,
         scene,
