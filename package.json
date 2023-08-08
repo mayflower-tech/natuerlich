@@ -1,6 +1,6 @@
 {
   "name": "@coconut-xr/natuerlich",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
@@ -44,14 +44,19 @@
     "@webxr-input-profiles/motion-controllers": "^1.0.0",
     "meshline": "3.1.6",
     "suspend-react": "^0.0.9",
-    "zustand": ">=4.0.0"
+    "zustand": ">=4.0.0",
+    "three-stdlib": "*"
   },
   "peerDependencies": {
     "@coconut-xr/koestlich": "*",
     "react": "*",
     "three": "*",
-    "@react-three/fiber": "*",
-    "three-stdlib": "*"
+    "@react-three/fiber": "*"
+  },
+  "peerDependenciesMeta": {
+    "@coconut-xr/koestlich": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@react-three/fiber": "^8.11.0",
