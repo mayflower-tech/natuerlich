@@ -12,6 +12,7 @@ import {
   PositionalAudio,
 } from "./index.js";
 import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
+import { VisibilityFocusStateGuard } from "../react/index.js";
 
 /**
  * hand for grabbing objects when the pinch gesture is detected
@@ -101,7 +102,7 @@ export function GrabHand({
   const scene = useThree(({ scene }) => scene);
 
   return (
-    <>
+    <VisibilityFocusStateGuard>
       <Suspense fallback={null}>
         <DynamicHandModel hand={hand} handedness={inputSource.handedness}>
           <HandBoneGroup rotationJoint="wrist" joint={["thumb-tip", "index-finger-tip"]}>
@@ -145,6 +146,6 @@ export function GrabHand({
         </mesh>,
         scene,
       )}
-    </>
+    </VisibilityFocusStateGuard>
   );
 }

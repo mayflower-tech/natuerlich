@@ -74,6 +74,8 @@ import {
   GrabHand,
   PointerHand,
   PointerController,
+  Controllers,
+  Hands,
 } from "@coconut-xr/natuerlich/defaults";
 import { getInputSourceId, getPlaneId } from "@coconut-xr/natuerlich";
 
@@ -123,7 +125,9 @@ export default function Index() {
         <ambientLight intensity={0.5} />
         <pointLight position={[0, 1, 0]} intensity={10} />
         <ImmersiveSessionOrigin position={position}>
-          <InputSources functionRef={ref} onTeleport={setPosition} />
+          {/*<InputSources functionRef={ref} onTeleport={setPosition} />*/}
+          <Controllers />
+          <Hands />
           <TrackedPlanes />
           <AnchorObject />
         </ImmersiveSessionOrigin>

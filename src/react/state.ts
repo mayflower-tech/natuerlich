@@ -38,6 +38,7 @@ export type XRState = (
       trackedImages: TrackedImagesMap;
       requestedTrackedImages?: ReadonlyArray<XRTrackedImageInit>;
       trackedPlanes: ReadonlyArray<XRPlane>;
+      visibilityState: XRVisibilityState;
     }
   | {
       mode: "none";
@@ -48,6 +49,7 @@ export type XRState = (
       trackedImages?: undefined;
       requestedTrackedImages?: undefined;
       trackedPlanes?: undefined;
+      visibilityState?: undefined;
     }
 ) & {
   store?: StoreApi<RootState>;
@@ -137,6 +139,16 @@ export const useXR = create(
         layers: state.layers.map(({ layer }) => layer),
       });
     },
+    onVisibilityStateChanged(e: XRSessionEvent) {
+      const state = get();
+      if (state.mode === "none") {
+        console.warn(`received onVsibilityStateChanged while in xr mode "none"`);
+        return;
+      }
+      set({
+        visibilityState: e.session.visibilityState,
+      });
+    },
     onXRInputSourcesChanged(e: XRInputSourceChangeEvent) {
       const state = get();
       if (state.mode === "none") {
@@ -168,6 +180,7 @@ export const useXR = create(
         requestedTrackedImages: undefined,
         trackedImages: undefined,
         trackedPlanes: undefined,
+        visibilityState: undefined,
       });
       const { camera } = store.getState();
       //(gl.xr as any).setUserCamera(undefined);
@@ -204,6 +217,7 @@ export const useXR = create(
       if (oldSession != null) {
         oldSession.removeEventListener("inputsourceschange", this.onXRInputSourcesChanged);
         oldSession.removeEventListener("end", this.onXREnd);
+        oldSession.removeEventListener("visibilitychange", this.onVisibilityStateChanged);
         //assure the session is ended when it is removed from the state
         oldSession.end().catch(console.error);
       }
@@ -220,6 +234,7 @@ export const useXR = create(
       //add event listeners
       session.addEventListener("inputsourceschange", this.onXRInputSourcesChanged);
       session.addEventListener("end", this.onXREnd);
+      session.addEventListener("visibilitychange", this.onVisibilityStateChanged);
 
       const { gl, camera } = store.getState();
       //fake camera we use to represent the transformation when in XR
@@ -236,6 +251,7 @@ export const useXR = create(
         inputSources,
         initialCamera: camera,
         trackedImages: new Map(),
+        visibilityState: session.visibilityState,
         requestedTrackedImages,
         layers: [{ index: 0, layer: gl.xr.getBaseLayer() }],
         trackedPlanes: [],

@@ -22,6 +22,7 @@ import {
   PositionalAudio,
 } from "./index.js";
 import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
+import { VisibilityFocusStateGuard } from "../react/index.js";
 
 const negZAxis = new Vector3(0, 0, -1);
 
@@ -120,7 +121,7 @@ export function PointerController({
   const scene = useThree(({ scene }) => scene);
 
   return (
-    <>
+    <VisibilityFocusStateGuard>
       {inputSource.gripSpace != null && (
         <SpaceGroup space={inputSource.gripSpace}>
           {children}
@@ -168,6 +169,6 @@ export function PointerController({
         </mesh>,
         scene,
       )}
-    </>
+    </VisibilityFocusStateGuard>
   );
 }

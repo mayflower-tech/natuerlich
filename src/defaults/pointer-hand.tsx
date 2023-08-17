@@ -20,6 +20,7 @@ import {
   updateRayTransformation,
 } from "./index.js";
 import { ThreeEvent, createPortal, useThree } from "@react-three/fiber";
+import { VisibilityFocusStateGuard } from "../react/index.js";
 
 const negZAxis = new Vector3(0, 0, -1);
 
@@ -122,7 +123,7 @@ export function PointerHand({
   const scene = useThree(({ scene }) => scene);
 
   return (
-    <>
+    <VisibilityFocusStateGuard>
       <Suspense>
         <DynamicHandModel hand={hand} handedness={inputSource.handedness}>
           {children != null && <HandBoneGroup joint={childrenAtJoint}>{children}</HandBoneGroup>}
@@ -170,6 +171,6 @@ export function PointerHand({
         </mesh>,
         scene,
       )}
-    </>
+    </VisibilityFocusStateGuard>
   );
 }

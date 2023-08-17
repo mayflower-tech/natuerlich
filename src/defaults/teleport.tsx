@@ -31,6 +31,7 @@ import { clamp } from "three/src/math/MathUtils.js";
 import { SpaceGroup } from "../react/space.js";
 import { DynamicControllerModel } from "../react/controller.js";
 import { CursorBasicMaterial, PositionalAudio } from "./index.js";
+import { VisibilityFocusStateGuard } from "../react/index.js";
 
 function emptyFunction() {
   //nothing to do
@@ -165,7 +166,7 @@ export function TeleportHand({
   });
 
   return (
-    <>
+    <VisibilityFocusStateGuard>
       <Suspense fallback={null}>
         <DynamicHandModel ref={handRef} hand={hand} handedness={inputSource.handedness}>
           {children}
@@ -179,7 +180,7 @@ export function TeleportHand({
           <TeleportPointer {...pointerProps} currentIntersectionRef={currentIntersectionRef} />
         )}
       </group>
-    </>
+    </VisibilityFocusStateGuard>
   );
 }
 
@@ -273,7 +274,7 @@ export function TeleportController({
   });
 
   return (
-    <>
+    <VisibilityFocusStateGuard>
       {inputSource.gripSpace != null && (
         <SpaceGroup space={inputSource.gripSpace}>
           {children}
@@ -290,7 +291,7 @@ export function TeleportController({
           <TeleportPointer {...pointerProps} currentIntersectionRef={currentIntersectionRef} />
         )}
       </group>
-    </>
+    </VisibilityFocusStateGuard>
   );
 }
 

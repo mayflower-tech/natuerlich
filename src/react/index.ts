@@ -57,6 +57,14 @@ export function useSessionSupported(mode: XRSessionMode): boolean | undefined {
 }
 
 /**
+ *
+ * @returns the focus state of the xr session; returns undefined if not in a xr session
+ */
+export function useFocusState(): XRVisibilityState | undefined {
+  return useXR((state) => state.visibilityState);
+}
+
+/**
  * @returns the native frame buffer scaling
  */
 export function useNativeFramebufferScaling(): number | undefined {
