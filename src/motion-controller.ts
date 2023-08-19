@@ -3,8 +3,8 @@ import {
   fetchProfile as fetchProfileFromXRInputSource,
   MotionController,
   Component,
-} from "@webxr-input-profiles/motion-controllers/src";
-import { VisualResponse } from "@webxr-input-profiles/motion-controllers/src/visualResponse.js";
+  VisualResponse,
+} from "@webxr-input-profiles/motion-controllers/src/index.js";
 import { Mesh, MeshBasicMaterial, Object3D, SphereGeometry } from "three";
 import { DEFAULT_PROFILES_PATH } from "./index.js";
 
