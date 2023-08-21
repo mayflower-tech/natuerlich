@@ -3,7 +3,8 @@ import { useLoader, useFrame } from "@react-three/fiber";
 import React, { useMemo, forwardRef, useEffect } from "react";
 import { suspend } from "suspend-react";
 import { Group } from "three";
-import { GLTF, GLTFLoader } from "three-stdlib/loaders/GLTFLoader.js";
+import type { GLTF } from "three-stdlib/loaders/GLTFLoader.js";
+import * as ThreeGLTF from "three-stdlib/loaders/GLTFLoader.js";
 import {
   XRInputSourceData,
   fetchControllerProfile,
@@ -11,6 +12,8 @@ import {
   updateMotionController,
   createMotionController,
 } from "../motion-controller.js";
+
+const { GLTFLoader } = ThreeGLTF;
 
 //TODO: get ref to items (for e.g. highlighting)
 

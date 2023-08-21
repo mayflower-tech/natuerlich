@@ -1,9 +1,9 @@
 /* eslint-disable react/display-name */
 import { useLoader, useFrame } from "@react-three/fiber";
 import React, { ReactNode, forwardRef, useMemo, useRef, useImperativeHandle } from "react";
-import { GLTFLoader } from "three-stdlib/loaders/GLTFLoader.js";
-import { SkeletonUtils } from "three-stdlib/utils/SkeletonUtils.js";
-import { OculusHandModel } from "three-stdlib/webxr/OculusHandModel.js";
+import * as ThreeGLTF from "three-stdlib/loaders/GLTFLoader.js";
+import * as ThreeOculusHandModel from "three-stdlib/utils/SkeletonUtils.js";
+import type { OculusHandModel } from "three-stdlib/webxr/OculusHandModel.js";
 import {
   getMotionHandModelUrl,
   createMotionHand,
@@ -12,6 +12,9 @@ import {
   MotionHand,
 } from "../motion-hand.js";
 import { Group, Object3D } from "three";
+
+const { GLTFLoader } = ThreeGLTF;
+const { SkeletonUtils } = ThreeOculusHandModel;
 
 /**
  * component for positioning content at a specific joint
