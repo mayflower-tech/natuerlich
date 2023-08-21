@@ -1,12 +1,17 @@
-import {
-  Constants,
-  fetchProfile as fetchProfileFromXRInputSource,
-  MotionController,
+import * as WebXRMotionControllers from "@webxr-input-profiles/motion-controllers";
+import type {
   Component,
   VisualResponse,
-} from "@webxr-input-profiles/motion-controllers/src/index.js";
+  MotionController,
+} from "@webxr-input-profiles/motion-controllers";
 import { Mesh, MeshBasicMaterial, Object3D, SphereGeometry } from "three";
 import { DEFAULT_PROFILES_PATH } from "./index.js";
+
+const {
+  Constants,
+  fetchProfile: fetchProfileFromXRInputSource,
+  MotionController: MotionControllerImpl,
+} = WebXRMotionControllers;
 
 //from https://github.com/mrdoob/three.js/blob/dev/examples/jsm/webxr/XRControllerModelFactory.js
 
@@ -47,7 +52,7 @@ export async function createMotionController(
     throw new Error(`unable to find pfile for input source`);
   }
 
-  return new MotionController(xrInputSource, profile, assetPath);
+  return new MotionControllerImpl(xrInputSource, profile, assetPath);
 }
 
 export function bindMotionControllerToObject(
