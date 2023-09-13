@@ -12,6 +12,7 @@ import {
   updateMotionController,
   createMotionController,
 } from "../motion-controller.js";
+import { useXR } from "./state.js";
 
 const { GLTFLoader } = ThreeGLTF;
 
@@ -36,12 +37,16 @@ export const DynamicControllerModel = forwardRef<
     defaultProfileId,
     createMotionControllerSymbol,
   ]);
+
   const { scene } = useLoader(GLTFLoader, motionController.assetUrl) as GLTF;
   const clonedScene = useMemo(() => scene.clone(true), [scene]);
   useEffect(
     () => bindMotionControllerToObject(motionController, clonedScene),
     [motionController, clonedScene],
   );
+  useEffect(() => {
+    useXR.getState().motionControllers.set(inputSource, motionController);
+  }, [inputSource, motionController]);
   useFrame((_state, _delta, frame: XRFrame | undefined) => {
     if (
       frame == null ||

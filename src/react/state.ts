@@ -3,6 +3,7 @@ import { Object3D } from "three";
 import { StoreApi, create } from "zustand";
 import { combine } from "zustand/middleware";
 import { getInputSourceId } from "../index.js";
+import { MotionController } from "@webxr-input-profiles/motion-controllers";
 
 export type XRImageTrackingScore = "untrackable" | "trackable";
 
@@ -54,6 +55,7 @@ export type XRState = (
 ) & {
   store?: StoreApi<RootState>;
   onNextFrameCallbacks: Set<(state: RootState, delta: number, frame: XRFrame | undefined) => void>;
+  motionControllers: Map<XRInputSource, MotionController>;
 };
 
 export type GrabbableEventListener = (inputSourceId: number, target: Object3D) => void;
@@ -61,6 +63,7 @@ export type GrabbableEventListener = (inputSourceId: number, target: Object3D) =
 const initialState = {
   mode: "none",
   onNextFrameCallbacks: new Set(),
+  motionControllers: new Map(),
 } as XRState;
 
 /**
