@@ -44,8 +44,7 @@
     "@webxr-input-profiles/motion-controllers": "^1.0.0",
     "meshline": "3.1.6",
     "suspend-react": "^0.0.9",
-    "zustand": ">=4.0.0",
-    "three-stdlib": "*"
+    "zustand": ">=4.0.0"
   },
   "peerDependencies": {
     "@coconut-xr/koestlich": "*",

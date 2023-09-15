@@ -3,8 +3,7 @@ import { useLoader, useFrame } from "@react-three/fiber";
 import React, { useMemo, forwardRef, useEffect } from "react";
 import { suspend } from "suspend-react";
 import { Group } from "three";
-import type { GLTF } from "three-stdlib/loaders/GLTFLoader.js";
-import * as ThreeGLTF from "three-stdlib/loaders/GLTFLoader.js";
+import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   XRInputSourceData,
   fetchControllerProfile,
@@ -14,8 +13,6 @@ import {
 } from "../motion-controller.js";
 import { ControllerProfile } from "../motion-controller.js";
 import * as WebXRMotionControllers from "@webxr-input-profiles/motion-controllers";
-
-const { GLTFLoader } = ThreeGLTF;
 
 const { MotionController: MotionControllerImpl } = WebXRMotionControllers;
 

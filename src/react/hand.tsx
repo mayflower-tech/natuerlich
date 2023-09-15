@@ -1,9 +1,9 @@
 /* eslint-disable react/display-name */
 import { useLoader, useFrame } from "@react-three/fiber";
 import React, { ReactNode, forwardRef, useMemo, useRef, useImperativeHandle } from "react";
-import * as ThreeGLTF from "three-stdlib/loaders/GLTFLoader.js";
-import * as ThreeOculusHandModel from "three-stdlib/utils/SkeletonUtils.js";
-import type { OculusHandModel } from "three-stdlib/webxr/OculusHandModel.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
+import type { OculusHandModel } from "three/examples/jsm/webxr/OculusHandModel.js";
 import {
   getMotionHandModelUrl,
   createMotionHand,
@@ -12,9 +12,6 @@ import {
   MotionHand,
 } from "../motion-hand.js";
 import { Group, Object3D } from "three";
-
-const { GLTFLoader } = ThreeGLTF;
-const { SkeletonUtils } = ThreeOculusHandModel;
 
 /**
  * component for positioning content at a specific joint
@@ -86,7 +83,7 @@ export const DynamicHandModel = forwardRef<
 >(({ children, handedness, basePath, defaultProfileId, hand }, ref) => {
   const url = getMotionHandModelUrl(handedness, basePath, defaultProfileId);
   const { scene } = useLoader(GLTFLoader, url);
-  const clonedScene = useMemo(() => SkeletonUtils.clone(scene), [scene]);
+  const clonedScene = useMemo(() => cloneSkeleton(scene), [scene]);
   const motionHand = useMemo(() => createMotionHand(hand, clonedScene), [clonedScene, hand]);
   useFrame((state, delta, frame: XRFrame | undefined) => {
     if (
@@ -121,6 +118,6 @@ export const StaticHandModel = forwardRef<
     GLTFLoader,
     getMotionHandModelUrl(handedness, basePath, defaultProfileId),
   );
-  const clonedScene = useMemo(() => SkeletonUtils.clone(scene), [scene]);
+  const clonedScene = useMemo(() => cloneSkeleton(scene), [scene]);
   return <primitive ref={ref} object={clonedScene} />;
 });
