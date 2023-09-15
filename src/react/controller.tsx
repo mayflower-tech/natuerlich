@@ -10,14 +10,32 @@ import {
   fetchControllerProfile,
   bindMotionControllerToObject,
   updateMotionController,
-  createMotionController,
+  getAssetPath,
 } from "../motion-controller.js";
+import { ControllerProfile } from "../motion-controller.js";
+import * as WebXRMotionControllers from "@webxr-input-profiles/motion-controllers";
 
 const { GLTFLoader } = ThreeGLTF;
 
+const { MotionController: MotionControllerImpl } = WebXRMotionControllers;
+
 //TODO: get ref to items (for e.g. highlighting)
 
-const createMotionControllerSymbol = Symbol("createMotionController");
+const fetchControllerProfileSymbol = Symbol("fetchControllerProfile");
+
+/**
+ * @returns the controller profile information based on the available input source profiles
+ */
+export function useInputSourceProfile(
+  inputSourceProfiles: Array<string>,
+  basePath?: string,
+  defaultProfileId?: string,
+): ControllerProfile {
+  return suspend(
+    () => fetchControllerProfile(inputSourceProfiles, basePath, defaultProfileId),
+    [fetchControllerProfileSymbol, ...inputSourceProfiles, basePath, defaultProfileId],
+  );
+}
 
 /**
  * render a the detected controller model and animates pressed buttons and other input elements
@@ -30,13 +48,13 @@ export const DynamicControllerModel = forwardRef<
     defaultProfileId?: string;
   }
 >(({ inputSource, basePath, defaultProfileId }, ref) => {
-  const motionController = suspend(createMotionController, [
-    inputSource,
-    basePath,
-    defaultProfileId,
-    createMotionControllerSymbol,
-  ]);
-  const { scene } = useLoader(GLTFLoader, motionController.assetUrl) as GLTF;
+  const profile = useInputSourceProfile(inputSource.profiles, basePath, defaultProfileId);
+  const motionController = useMemo(
+    () =>
+      new MotionControllerImpl(inputSource, profile, getAssetPath(profile, inputSource.handedness)),
+    [inputSource, profile],
+  );
+  const { scene } = useLoader(GLTFLoader, getAssetPath(profile, inputSource.handedness)) as GLTF;
   const clonedScene = useMemo(() => scene.clone(true), [scene]);
   useEffect(
     () => bindMotionControllerToObject(motionController, clonedScene),
@@ -60,8 +78,6 @@ export const DynamicControllerModel = forwardRef<
   return <primitive ref={ref} object={clonedScene} />;
 });
 
-const fetchControllerProfileSymbol = Symbol("fetchControllerProfile");
-
 /**
  * render a the detected controller model
  */
@@ -73,16 +89,8 @@ export const StaticControllerModel = forwardRef<
     defaultProfileId?: string;
   }
 >(({ inputSource, basePath, defaultProfileId }, ref) => {
-  const { assetPath } = suspend(fetchControllerProfile, [
-    inputSource,
-    basePath,
-    defaultProfileId,
-    fetchControllerProfileSymbol,
-  ]);
-  if (assetPath == null) {
-    throw new Error(`unable to find profile for input source`);
-  }
-  const { scene } = useLoader(GLTFLoader, assetPath);
+  const profile = useInputSourceProfile(inputSource.profiles, basePath, defaultProfileId);
+  const { scene } = useLoader(GLTFLoader, getAssetPath(profile, inputSource.handedness));
   const clonedScene = useMemo(() => scene.clone(true), [scene]);
   // eslint-disable-next-line react/no-unknown-property
   return <primitive ref={ref} object={clonedScene} />;

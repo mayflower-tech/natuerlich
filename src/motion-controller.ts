@@ -7,11 +7,7 @@ import type {
 import { Mesh, MeshBasicMaterial, Object3D, SphereGeometry } from "three";
 import { DEFAULT_PROFILES_PATH } from "./index.js";
 
-const {
-  Constants,
-  fetchProfile: fetchProfileFromXRInputSource,
-  MotionController: MotionControllerImpl,
-} = WebXRMotionControllers;
+const { Constants } = WebXRMotionControllers;
 
 //from https://github.com/mrdoob/three.js/blob/dev/examples/jsm/webxr/XRControllerModelFactory.js
 
@@ -29,30 +25,82 @@ export type XRInputSourceData = {
   handedness: string;
 };
 
+export type ControllerProfile = {
+  profileId: string;
+  fallbackProfileIds: Array<string>;
+  deprecatedProfileIds?: Array<string>;
+  profilePath: string;
+  layouts: {
+    [Key in "left" | "right" | "none" | "left-right" | "left-right-none" | string]?: {
+      selectComponentId: string;
+      components: {
+        [Key in string]: {
+          type: "trigger" | "squeeze" | "touchpad" | "thumbstick" | "button" | string;
+          gamepadIndices: {
+            [Key in string | "button" | "xAxis" | "yAxis"]?: number;
+          };
+          rootNodeName: string;
+          visualResponses: any;
+        };
+      };
+      gamepadMapping: string;
+      rootNodeName: string;
+      assetPath: string;
+    };
+  };
+};
+
 export async function fetchControllerProfile(
-  inputSourceData: XRInputSourceData,
+  inputSourceProfiles: Array<string>,
   basePath = DEFAULT_PROFILES_PATH,
   defaultProfileId = DEFAULT_CONTROLLER_PROFILE,
-) {
-  return fetchProfileFromXRInputSource(inputSourceData, basePath, defaultProfileId);
-}
+): Promise<ControllerProfile> {
+  // Get the list of profiles
 
-export async function createMotionController(
-  xrInputSource: XRInputSource,
-  basePath?: string,
-  defaultProfileId?: string,
-) {
-  const { profile, assetPath } = await fetchControllerProfile(
-    xrInputSource,
-    basePath,
-    defaultProfileId,
-  );
+  const profileListFileName = "profilesList.json";
+  let response = await fetch(`${basePath}/${profileListFileName}`);
 
-  if (assetPath == null) {
-    throw new Error(`unable to find pfile for input source`);
+  if (!response.ok) {
+    return Promise.reject(new Error(response.statusText));
   }
 
-  return new MotionControllerImpl(xrInputSource, profile, assetPath);
+  const supportedProfilesList = await response.json();
+
+  // Find the relative path to the first requested profile that is recognized
+  const supportedProfileId =
+    inputSourceProfiles.find((profileId) => supportedProfilesList[profileId] != null) ??
+    defaultProfileId;
+
+  if (defaultProfileId == null) {
+    throw new Error("No matching profile name found");
+  }
+
+  const supportedProfile = supportedProfilesList[supportedProfileId];
+
+  if (supportedProfile == null) {
+    throw new Error(
+      `No matching profile name found and default profile "${defaultProfileId}" missing.`,
+    );
+  }
+
+  const profilePath = `${basePath}/${supportedProfile.path}`;
+
+  response = await fetch(profilePath);
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+
+  return Object.assign(await response.json(), { profilePath });
+}
+
+export function getAssetPath(profile: ControllerProfile, handedness: string): string {
+  const layout =
+    profile.layouts[handedness === "any" ? Object.keys(profile.layouts)[0] : handedness];
+  if (layout == null) {
+    throw new Error(`No matching handedness, ${handedness}, in profile ${profile.profileId}`);
+  }
+
+  return profile.profilePath.replace("profile.json", layout.assetPath);
 }
 
 export function bindMotionControllerToObject(
