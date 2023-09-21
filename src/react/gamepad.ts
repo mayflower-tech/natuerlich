@@ -1,7 +1,6 @@
 import { useInputSourceProfile } from "./controller.js";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { ControllerComponent } from "../index.js";
 
 export enum ComponentState {
   DEFAULT = "default",
@@ -9,131 +8,111 @@ export enum ComponentState {
   PRESSED = "pressed",
 }
 
-export type ComponentValues = {
-  state: ComponentState;
-  button?: number;
-  xAxis?: number;
-  yAxis?: number;
-};
-
-export type GamepadValues = GamepadValues;
-
 const ButtonTouchThreshold = 0.05;
-const AxisTouchThreshold = 0.1;
 
-export const useXRGamepadValues = (
+export const useXRGamepadReader = (
   inputSource: XRInputSource,
-  callback: (values: GamepadValues) => void,
   basePath?: string,
   defaultProfileId?: string,
 ) => {
   const profile = useInputSourceProfile(inputSource.profiles, basePath, defaultProfileId);
-  const [components] = useState<Record<string, ControllerComponent>>({});
-  const [gamepadValues] = useState<GamepadValues>({});
 
-  useEffect(() => {
-    const profileComponents = profile?.layouts?.[inputSource.handedness]?.components;
-    if (!profileComponents) {
-      return;
-    }
+  const readGamepadButton = useCallback(
+    (id: string) => {
+      const gamepad = inputSource.gamepad;
+      const profileComponents = profile?.layouts?.[inputSource.handedness]?.components;
 
-    Object.keys(profileComponents).forEach((componentId) => {
-      components[componentId] = profileComponents[componentId];
-      const gamepadIndices = components[componentId].gamepadIndices;
-
-      gamepadValues[componentId] = {
-        state: ComponentState.DEFAULT,
-        ...(gamepadIndices.button !== undefined ? { button: 0 } : {}),
-        ...(gamepadIndices.xAxis !== undefined ? { xAxis: 0 } : {}),
-        ...(gamepadIndices.yAxis !== undefined ? { yAxis: 0 } : {}),
-      };
-    });
-  }, [components, inputSource.handedness, profile, gamepadValues]);
-
-  useFrame(() => {
-    const gamepad = inputSource.gamepad;
-
-    if (!gamepad) {
-      return;
-    }
-
-    Object.keys(components).forEach((componentId) => {
-      const component = components[componentId];
-      const values = gamepadValues[componentId];
-      values.state = ComponentState.DEFAULT;
-      const gamepadIndices = component.gamepadIndices;
-
-      // Get and normalize button
-      if (gamepadIndices.button !== undefined && gamepad.buttons.length > gamepadIndices.button) {
-        const gamepadButton = gamepad.buttons[gamepadIndices.button];
-        values.button = gamepadButton.value;
-        values.button = values.button < 0 ? 0 : values.button;
-        values.button = values.button > 1 ? 1 : values.button;
-
-        // Set the state based on the button
-        if (gamepadButton.pressed || values.button === 1) {
-          values.state = ComponentState.PRESSED;
-        } else if (gamepadButton.touched || values.button > ButtonTouchThreshold) {
-          values.state = ComponentState.TOUCHED;
-        }
+      if (!gamepad || !profileComponents) {
+        return;
       }
 
-      // Get and normalize x axis value
-      if (gamepadIndices.xAxis !== undefined && gamepad.axes.length > gamepadIndices.xAxis) {
-        values.xAxis = gamepad.axes[gamepadIndices.xAxis];
-        values.xAxis = values.xAxis < -1 ? -1 : values.xAxis;
-        values.xAxis = values.xAxis > 1 ? 1 : values.xAxis;
+      const gamepadIndices = profileComponents[id]?.gamepadIndices;
 
-        // If the state is still default, check if the xAxis makes it touched
-        if (
-          values.state === ComponentState.DEFAULT &&
-          Math.abs(values.xAxis) > AxisTouchThreshold
-        ) {
-          values.state = ComponentState.TOUCHED;
-        }
+      if (gamepadIndices?.button === undefined) {
+        return;
       }
 
-      // Get and normalize Y axis value
-      if (gamepadIndices.yAxis !== undefined && gamepad.axes.length > gamepadIndices.yAxis) {
-        values.yAxis = gamepad.axes[gamepadIndices.yAxis];
-        values.yAxis = values.yAxis < -1 ? -1 : values.yAxis;
-        values.yAxis = values.yAxis > 1 ? 1 : values.yAxis;
+      return gamepad.buttons[gamepadIndices.button];
+    },
+    [inputSource.gamepad, inputSource.handedness, profile?.layouts],
+  );
 
-        // If the state is still default, check if the yAxis makes it touched
-        if (
-          values.state === ComponentState.DEFAULT &&
-          Math.abs(values.yAxis) > AxisTouchThreshold
-        ) {
-          values.state = ComponentState.TOUCHED;
-        }
+  const readButton = useCallback(
+    (id: string) => {
+      const gamepadButton = readGamepadButton(id);
+      return gamepadButton ? Math.min(1, Math.max(0, gamepadButton.value)) : 0;
+    },
+    [readGamepadButton],
+  );
+
+  const readButtonState = useCallback(
+    (id: string) => {
+      const gamepadButton = readGamepadButton(id);
+
+      // Set the state based on the button
+      return gamepadButton
+        ? gamepadButton.pressed || gamepadButton.value === 1
+          ? ComponentState.PRESSED
+          : gamepadButton.touched || gamepadButton.value > ButtonTouchThreshold
+          ? ComponentState.TOUCHED
+          : ComponentState.DEFAULT
+        : ComponentState.DEFAULT;
+    },
+    [readGamepadButton],
+  );
+
+  const readAxisState = useCallback(
+    (id: string) => {
+      const gamepad = inputSource.gamepad;
+      const profileComponents = profile?.layouts?.[inputSource.handedness]?.components;
+
+      if (!gamepad || !profileComponents) {
+        return;
       }
-    });
 
-    callback(gamepadValues);
-  });
+      const gamepadIndices = profileComponents[id]?.gamepadIndices;
+
+      const x = gamepadIndices?.xAxis !== undefined ? gamepad.axes[gamepadIndices.xAxis] : 0;
+      const y = gamepadIndices?.yAxis !== undefined ? gamepad.axes[gamepadIndices.yAxis] : 0;
+
+      return { x, y };
+    },
+    [inputSource.gamepad, inputSource.handedness, profile?.layouts],
+  );
+
+  return useMemo(
+    () => ({
+      readButton,
+      readGamepadButton,
+      readButtonState,
+      readAxisState,
+    }),
+    [readAxisState, readButton, readButtonState, readGamepadButton],
+  );
 };
 
 export const useXRGamepadButton = (
   inputSource: XRInputSource,
-  component: string,
-  pressCallback: (values: GamepadValues) => void,
-  releaseCallback: (values: GamepadValues) => void,
+  componentId: string,
+  pressCallback: () => void,
+  releaseCallback: () => void,
 ) => {
   const prevState = useRef(ComponentState.DEFAULT);
+  const reader = useXRGamepadReader(inputSource);
 
-  useXRGamepadValues(inputSource, (values) => {
-    const newState = values[component]?.state;
+  useFrame(() => {
+    const newState = reader.readButtonState(componentId);
 
     if (!newState) {
       return;
     }
 
     if (prevState.current !== ComponentState.PRESSED && newState === ComponentState.PRESSED) {
-      pressCallback(values);
+      pressCallback();
     }
 
     if (prevState.current === ComponentState.PRESSED && newState !== ComponentState.PRESSED) {
-      releaseCallback(values);
+      releaseCallback();
     }
 
     prevState.current = newState;
