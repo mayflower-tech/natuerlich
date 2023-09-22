@@ -22,15 +22,15 @@ We provide bindings to [react-three/fiber](https://github.com/pmndrs/react-three
 
 - [Spatial UI with Koestlich](https://codesandbox.io/s/natuerlich-spatual-ui-example-xmdpvq?file=/src/app.tsx)
 
-    <img src="./images/spatial-ui-example.gif" width="35%">
+    <img src="./docs/static/images/spatial-ui-example.gif" width="35%">
 
 - [Placing Objects](https://codesandbox.io/s/natuerlich-placing-objects-3q74pk?file=/src/app.tsx) - 3D Models from [Quaternius](https://quaternius.com/)
 
-    <img src="./images/placing-objects.gif" width="30%">
+    <img src="./docs/static/images/placing-objects.gif" width="30%">
 
 - [Rag Doll Physics](https://codesandbox.io/s/natuerlich-ragdoll-physics-j2q7mc?file=/src/App.js) - based on [R3F Example](https://codesandbox.io/s/wdzv4)
 
-    <img src="./images/rag-doll.gif" width="30%">
+    <img src="./docs/static/images/rag-doll.gif" width="30%">
 
 ## [Documentation](https://coconut-xr.github.io/natuerlich)
 
