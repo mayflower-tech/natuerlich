@@ -16,7 +16,7 @@ We provide bindings to [react-three/fiber](https://github.com/pmndrs/react-three
 
 `npm install @coconut-xr/natuerlich`
 
-## Check out the [Getting Started](./getting-started)
+## Check out the [Getting Started](https://coconut-xr.github.io/natuerlich/getting-started)
 
 ## Examples
 
