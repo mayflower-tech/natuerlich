@@ -67,7 +67,7 @@ const sidebars = {
     {
       type: "link",
       label: "Github",
-      href: "https://github.com/coconut-xr/apfel-kruemel",
+      href: "https://github.com/coconut-xr/natuerlich",
     },
     {
       type: "link",
