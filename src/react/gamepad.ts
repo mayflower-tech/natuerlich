@@ -1,8 +1,9 @@
 import { useInputSourceProfile } from "./controller.js";
 import { useCallback, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { Vector2 } from "three";
 
-export enum ComponentState {
+export enum ButtonState {
   DEFAULT = "default",
   TOUCHED = "touched",
   PRESSED = "pressed",
@@ -16,11 +17,14 @@ export const useXRGamepadReader = (
   defaultProfileId?: string,
 ) => {
   const profile = useInputSourceProfile(inputSource.profiles, basePath, defaultProfileId);
+  const profileComponents = useMemo(
+    () => profile?.layouts?.[inputSource.handedness]?.components,
+    [inputSource.handedness, profile?.layouts],
+  );
 
-  const readGamepadButton = useCallback(
+  const readButton = useCallback(
     (id: string) => {
       const gamepad = inputSource.gamepad;
-      const profileComponents = profile?.layouts?.[inputSource.handedness]?.components;
 
       if (!gamepad || !profileComponents) {
         return;
@@ -34,60 +38,59 @@ export const useXRGamepadReader = (
 
       return gamepad.buttons[gamepadIndices.button];
     },
-    [inputSource.gamepad, inputSource.handedness, profile?.layouts],
+    [inputSource.gamepad, profileComponents],
   );
 
-  const readButton = useCallback(
+  const readButtonValue = useCallback(
     (id: string) => {
-      const gamepadButton = readGamepadButton(id);
+      const gamepadButton = readButton(id);
       return gamepadButton ? Math.min(1, Math.max(0, gamepadButton.value)) : 0;
     },
-    [readGamepadButton],
+    [readButton],
   );
 
   const readButtonState = useCallback(
     (id: string) => {
-      const gamepadButton = readGamepadButton(id);
+      const gamepadButton = readButton(id);
 
       // Set the state based on the button
       return gamepadButton
         ? gamepadButton.pressed || gamepadButton.value === 1
-          ? ComponentState.PRESSED
+          ? ButtonState.PRESSED
           : gamepadButton.touched || gamepadButton.value > ButtonTouchThreshold
-          ? ComponentState.TOUCHED
-          : ComponentState.DEFAULT
-        : ComponentState.DEFAULT;
+          ? ButtonState.TOUCHED
+          : ButtonState.DEFAULT
+        : ButtonState.DEFAULT;
     },
-    [readGamepadButton],
+    [readButton],
   );
 
-  const readAxisState = useCallback(
-    (id: string) => {
+  const readAxes = useCallback(
+    (id: string, target: Vector2) => {
       const gamepad = inputSource.gamepad;
-      const profileComponents = profile?.layouts?.[inputSource.handedness]?.components;
 
       if (!gamepad || !profileComponents) {
-        return;
+        return false;
       }
 
       const gamepadIndices = profileComponents[id]?.gamepadIndices;
 
       const x = gamepadIndices?.xAxis !== undefined ? gamepad.axes[gamepadIndices.xAxis] : 0;
       const y = gamepadIndices?.yAxis !== undefined ? gamepad.axes[gamepadIndices.yAxis] : 0;
-
-      return { x, y };
+      target.set(x, y);
+      return true;
     },
-    [inputSource.gamepad, inputSource.handedness, profile?.layouts],
+    [inputSource.gamepad, profileComponents],
   );
 
   return useMemo(
     () => ({
+      readButtonValue,
       readButton,
-      readGamepadButton,
       readButtonState,
-      readAxisState,
+      readAxes,
     }),
-    [readAxisState, readButton, readButtonState, readGamepadButton],
+    [readAxes, readButtonValue, readButtonState, readButton],
   );
 };
 
@@ -97,7 +100,7 @@ export const useXRGamepadButton = (
   pressCallback: () => void,
   releaseCallback: () => void,
 ) => {
-  const prevState = useRef(ComponentState.DEFAULT);
+  const prevState = useRef(ButtonState.DEFAULT);
   const reader = useXRGamepadReader(inputSource);
 
   useFrame(() => {
@@ -107,11 +110,11 @@ export const useXRGamepadButton = (
       return;
     }
 
-    if (prevState.current !== ComponentState.PRESSED && newState === ComponentState.PRESSED) {
+    if (prevState.current !== ButtonState.PRESSED && newState === ButtonState.PRESSED) {
       pressCallback();
     }
 
-    if (prevState.current === ComponentState.PRESSED && newState !== ComponentState.PRESSED) {
+    if (prevState.current === ButtonState.PRESSED && newState !== ButtonState.PRESSED) {
       releaseCallback();
     }
 
