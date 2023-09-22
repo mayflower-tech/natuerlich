@@ -5,7 +5,8 @@
 [![Twitter](https://img.shields.io/twitter/follow/coconut_xr?style=flat-square)](https://twitter.com/coconut_xr)
 [![Discord](https://img.shields.io/discord/1087727032240185424?style=flat-square&label=discord)](https://discord.gg/RbyaXJJaJM)
 
-![header image](./images/header.jpg)
+<img src="./docs/static/images/header.jpg" width="100%">
+
 
 _WebXR Interaction for Three.js_
 
@@ -15,78 +16,57 @@ We provide bindings to [react-three/fiber](https://github.com/pmndrs/react-three
 
 `npm install @coconut-xr/natuerlich`
 
-<span style="font-size: 2rem">⤷[ Getting Started](https://coconut-xr.github.io/natuerlich/#/getting-started)</span>
+## Check out the [Getting Started](./getting-started)
 
 ## Examples
 
 - [Spatial UI with Koestlich](https://codesandbox.io/s/natuerlich-spatual-ui-example-xmdpvq?file=/src/app.tsx)
 
-    <img src="./images/spatial-ui-example.gif"  width="300">
+    <img src="./images/spatial-ui-example.gif" width="35%">
 
 - [Placing Objects](https://codesandbox.io/s/natuerlich-placing-objects-3q74pk?file=/src/app.tsx) - 3D Models from [Quaternius](https://quaternius.com/)
 
-    <img src="./images/placing-objects.gif"  width="200">
+    <img src="./images/placing-objects.gif" width="30%">
 
 - [Rag Doll Physics](https://codesandbox.io/s/natuerlich-ragdoll-physics-j2q7mc?file=/src/App.js) - based on [R3F Example](https://codesandbox.io/s/wdzv4)
 
-    <img src="./images/rag-doll.gif"  width="200">
+    <img src="./images/rag-doll.gif" width="30%">
 
 ## [Documentation](https://coconut-xr.github.io/natuerlich)
 
-- [Getting Started](https://coconut-xr.github.io/natuerlich/#/getting-started) - barebones WebXR, Hands, and Controllers
+- <a href="/getting-started">Getting Started - barebones WebXR, Hands, and Controllers<br></br><img src="./docs/static/images/barebones.gif" width="35%"></a>
 
-    <img src="./docs/barebones.gif"  width="150">
+- <a href="/object-interaction">Interaction with Objects - build interactions with objects<br></br><img src="./docs/static/images/object-draggable.gif" width="35%"></a>
 
-- [Interaction with Objects](https://coconut-xr.github.io/natuerlich/#/object-interaction) - build interactions with objects
+- <a href="/koestlich-interaction">Interaction with Koestlich - build interactive 3D UIs<br></br><img src="./docs/static/images/koestlich-interactable.gif" width="35%"></a>
 
-    <img src="./docs/object-draggable.gif"  width="150">
+- <a href="/teleport">Teleport - building a teleport interaction<br></br><img src="./docs/static/images/teleport.gif" width="35%"></a>
 
-- [Interaction with Koestlich](https://coconut-xr.github.io/natuerlich/#/koestlich-interaction) - build interactive 3D UIs
+- <a href="/poses">Poses - detecting and generating hand poses<br></br><img src="./docs/static/images/poses.gif" width="35%"></a>
 
-    <img src="./docs/koestlich-interactable.gif" width="150">
+- <a href="/layers">Layers - high quality content using WebXR layers<br></br><img src="./docs/static/images/layer.gif" width="35%"></a>
 
-- [Teleport](https://coconut-xr.github.io/natuerlich/#/teleport) - building a teleport interaction
+- <a href="/anchors">Anchors - spatial anchors using WebXR anchors<br></br><img src="./docs/static/images/anchor.gif" width="35%"></a>
 
-    <img src="./docs/teleport.gif"  width="150">
+- <a href="/tracked-planes">Tracked Planes - tracked room planes using WebXR planes<br></br><img src="./docs/static/images/tracked-planes.gif" width="35%"></a>
 
-- [Poses](https://coconut-xr.github.io/natuerlich/#/poses) - detecting and generating hand poses
+- <a href="/head-up-display">Head Up Display - placing content in front of the user's camera<br></br><img src="./docs/static/images/head-up-display.gif" width="35%"></a>
 
-    <img src="./docs/poses.gif"  width="150">
+- <a href="/custom-input-sources">Custom Input Sources - building custom interactive hands and controllers<br></br><img src="./docs/static/images/fist-grab-hand.gif" width="35%"></a>
 
+- <a href="/images">Tracked Images - image marker tracking using WebXR Image Tracking</a>
 
-- [Layers](https://coconut-xr.github.io/natuerlich/#/layers) - high quality content using WebXR layers
+- <a href="/guards">Guards - conditional rendering using guards</a>
 
-    <img src="./docs/layer.gif"  width="150">
+- <a href="/use-xr">Use XR - accessing the raw XR state</a>
 
-- [Anchors](https://coconut-xr.github.io/natuerlich/#/anchors) - spatial anchors using WebXR anchors
+- <a href="/configuration">Configuration - configurating foveation, frameRate, referenceSpace, and frameBufferScaling</a>
 
-    <img src="./docs/anchor.gif"  width="150">
-
-- [Tracked Planes](https://coconut-xr.github.io/natuerlich/#/planes) - tracked room planes using WebXR planes
-
-    <img src="./docs/tracked-planes.gif"  width="150">
-
-- [Head Up Display](https://coconut-xr.github.io/natuerlich/#/head-up-display) - placing content in front of the user's camera
-
-    <img src="./docs/head-up-display.gif"  width="150">
-
-- [Custom Input Sources](https://coconut-xr.github.io/natuerlich/#/custom-input-sources) - building custom interactive hands and controllers
-
-    <img src="./docs/fist-grab-hand.gif"  width="150">
-
-- [Tracked Images](https://coconut-xr.github.io/natuerlich/#/images) - image marker tracking using WebXR Image Tracking
-- [Guards](https://coconut-xr.github.io/natuerlich/#/guards) - conditional rendering using guards
-- [Use XR](https://coconut-xr.github.io/natuerlich/#/use-xr) - accessing the raw XR state
-- [Configuration](https://coconut-xr.github.io/natuerlich/#/configuration) - configurating foveation, frameRate, referenceSpace, and frameBufferScaling
 ---
 
-- [All Components](https://coconut-xr.github.io/natuerlich/#/all-components) - API Documentation for all available components
-- [All Hooks](https://coconut-xr.github.io/natuerlich/#/all-hooks) - API Documentation for all available hooks
+- <a href="/all-components">All Components - API Documentation for all available components</a>
 
-## Ecosystem
-
-- User Interfaces - [@coconut-xr/koestlich](https://github.com/coconut-xr/koestlich)
-- Pre-designed UI Components - [@coconut-xr/apfel-kruemel](https://github.com/coconut-xr/apfel-kruemel)
+- <a href="/configuration">All Hooks - API Documentation for all available hooks</a>
 
 ## Acknowledgements
 
