@@ -137,6 +137,7 @@ The `Grabbable` component is a wrapper that allows its children objects to be in
 ### XR
 
 `XR` is a key component for adding WebXR support to a scene. It is automatically added when using the `XRCanvas`. If the `XRCanvas` is not used, the `XR` component should be placed inside the R3F `Canvas` component and only one XR component should be present in a scene. It accepts a few optional properties like `foveation`, `frameRate`, `referenceSpace`, and `frameBufferScaling`.
+The `XR` component is necassary to connect the natuerlich WebXR state. The component has no children. Its only job is to be placed inside the canvas and configure to configure WebXR properties.
 
 ### TrackedPlane
 
