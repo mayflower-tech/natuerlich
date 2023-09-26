@@ -13,17 +13,17 @@ const { Constants } = WebXRMotionControllers;
 
 const DEFAULT_CONTROLLER_PROFILE = "generic-trigger";
 
-export type XRInputSourceData = {
+export type XRInputSourceData = Readonly<{
   /**
    * array of profile ids from XRInputSource.profiles
    */
-  profiles: Array<string>;
+  profiles: ReadonlyArray<string>;
   /**
    * handedness of the input source
    * can be "left", "right", "any", or any additional by the profile supported handedness
    */
   handedness: string;
-};
+}>;
 
 export type ControllerComponent = {
   type: "trigger" | "squeeze" | "touchpad" | "thumbstick" | "button" | string;
@@ -61,7 +61,7 @@ export type ControllerProfile = {
 };
 
 export async function fetchControllerProfile(
-  inputSourceProfiles: Array<string>,
+  inputSourceProfiles: ReadonlyArray<string>,
   basePath = DEFAULT_PROFILES_PATH,
   defaultProfileId = DEFAULT_CONTROLLER_PROFILE,
 ): Promise<ControllerProfile> {

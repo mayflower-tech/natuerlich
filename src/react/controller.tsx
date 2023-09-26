@@ -24,7 +24,7 @@ const fetchControllerProfileSymbol = Symbol("fetchControllerProfile");
  * @returns the controller profile information based on the available input source profiles
  */
 export function useInputSourceProfile(
-  inputSourceProfiles: Array<string>,
+  inputSourceProfiles: ReadonlyArray<string>,
   basePath?: string,
   defaultProfileId?: string,
 ): ControllerProfile {
