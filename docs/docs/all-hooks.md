@@ -89,6 +89,16 @@ This hook provides the highest available frame rate. It returns a number indicat
 
 This hook provides api for reading state from gamepad bound to inputSource. It returns convenience methods for reading button state (`readButton`), button value (`readButtonValue`) and axes values (`readAxes`).
 
+Available buttons and axes in Oculus 1 and 2 controllers:
+- `a-button`
+- `b-button`
+- `x-button`
+- `y-button`
+- `xr-standard-squeeze`
+- `xr-standard-thumbstick`
+- `xr-standard-trigger`
+- `thumbrest`
+
 ## `useXRGamepadButton`
 
 This hook is used to bind a press and release callbacks to a `inputSource.gamepad` button state.

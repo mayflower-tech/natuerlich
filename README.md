@@ -32,6 +32,8 @@ We provide bindings to [react-three/fiber](https://github.com/pmndrs/react-three
 
     <img src="./docs/static/images/rag-doll.gif" width="30%">
 
+- [Gamepad api](https://codesandbox.io/s/natuerlich-gamepad-api-example-l48gx5)
+
 ## [Documentation](https://coconut-xr.github.io/natuerlich/)
 
 - <a href="https://coconut-xr.github.io/natuerlich/getting-started">Getting Started - barebones WebXR, Hands, and Controllers<br></br><img src="./docs/static/images/barebones.gif" width="35%"></a>
